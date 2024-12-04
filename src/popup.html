@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Safe to Close Tabs</title>
+  <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Safe to Close Tabs</h1>
+    
+    <div class="add-url-section">
+      <input type="text" id="urlInput" placeholder="Enter URL pattern (e.g., example.com)">
+      <button id="addUrl">Add</button>
+    </div>
+
+    <div class="url-list-section">
+      <h2>Safe to Close URLs:</h2>
+      <ul id="urlList"></ul>
+    </div>
+
+    <div class="actions">
+      <button id="closeTabs" class="close-tabs-button">Close Matching Tabs</button>
+      <span id="status" class="status"></span>
+    </div>
+  </div>
+  <script src="js/popup.js"></script>
+</body>
+</html>
