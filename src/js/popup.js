@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const urlInput = document.getElementById('urlInput');
   const addUrlButton = document.getElementById('addUrl');
   const addCurrentUrlButton = document.getElementById('addCurrentUrl');
+  const addAllTabsButton = document.getElementById('addAllTabs');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
   const toggleListLink = document.getElementById('toggleList');
@@ -23,6 +24,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Add current tab URL
   addCurrentUrlButton.addEventListener('click', addCurrentTabUrl);
+
+  // Add all open tabs
+  addAllTabsButton.addEventListener('click', async function() {
+    try {
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      for (const tab of tabs) {
+        if (tab.url) {
+          const url = new URL(tab.url);
+          const fullUrl = `${url.hostname}${url.pathname}${url.search}`;
+          await addUrl(fullUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error adding all tabs:', error);
+    }
+  });
 
   // Add URL when pressing Enter in the input field
   urlInput.addEventListener('keypress', function(e) {
