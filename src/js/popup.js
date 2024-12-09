@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const indicator = this.querySelector('.toggle-indicator');
     urlListSection.classList.toggle('hidden');
-    indicator.textContent = urlListSection.classList.contains('hidden') ? '▶' : '▼';
+    indicator.innerHTML = urlListSection.classList.contains('hidden') ? '&#9658;' : '&#9660;';
   });
 
   // Add URL when clicking the add button
