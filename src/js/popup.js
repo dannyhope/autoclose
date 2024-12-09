@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const indicator = this.querySelector('.toggle-indicator');
     urlListSection.classList.toggle('hidden');
-    indicator.innerHTML = urlListSection.classList.contains('hidden') ? '&#9658;' : '&#9660;';
+    indicator.textContent = urlListSection.classList.contains('hidden') ? '▶' : '▼';
   });
 
   // Add URL when clicking the add button
@@ -143,4 +143,29 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
+  function updateCounts() {
+    // Update list count
+    chrome.storage.sync.get(['safeUrls'], function(result) {
+      const urls = result.safeUrls || [];
+      const listCount = urls.length;
+      document.getElementById('listCount').textContent = `(${listCount})`;
+    });
+
+    // Update matching tabs count
+    chrome.tabs.query({}, function(tabs) {
+      const matchingTabsCount = tabs.filter(tab => {
+        // Define your matching criteria here
+        return true; // Placeholder: replace with actual condition
+      }).length;
+      document.getElementById('matchingTabsCount').textContent = `(${matchingTabsCount})`;
+    });
+  }
+
+  // Call updateCounts initially and whenever URLs are loaded or tabs might change
+  loadUrls();
+  updateCounts();
+  chrome.tabs.onUpdated.addListener(updateCounts);
+  chrome.tabs.onRemoved.addListener(updateCounts);
+  chrome.tabs.onCreated.addListener(updateCounts);
 });
