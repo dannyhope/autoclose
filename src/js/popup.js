@@ -11,12 +11,21 @@ document.addEventListener('DOMContentLoaded', function() {
   // Load saved URLs
   loadUrls();
 
+  // Restore toggle state
+  chrome.storage.sync.get(['listToggleState'], function(result) {
+    const isOpen = result.listToggleState || false;
+    urlListSection.classList.toggle('hidden', !isOpen);
+    toggleListLink.querySelector('.toggle-indicator').innerHTML = isOpen ? '&#9660;' : '&#9654;';
+  });
+
   // Toggle URL list visibility
   toggleListLink.addEventListener('click', function(e) {
     e.preventDefault();
     const indicator = this.querySelector('.toggle-indicator');
     urlListSection.classList.toggle('hidden');
-    indicator.innerHTML = urlListSection.classList.contains('hidden') ? '&#9654;' : '&#9660;';
+    const isOpen = !urlListSection.classList.contains('hidden');
+    indicator.innerHTML = isOpen ? '&#9660;' : '&#9654;';
+    chrome.storage.sync.set({ listToggleState: isOpen });
   });
 
   // Add URL when clicking the add button
@@ -92,8 +101,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function formatUrlDisplay(urlStr) {
+    try {
+      const url = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
+      const domain = url.hostname.replace(/^www\./, '');
+      
+      // Get the page title from the pathname
+      let title = url.pathname === '/' 
+        ? domain 
+        : url.pathname.split('/').pop() || domain;
+      
+      // Clean up the title
+      title = title
+        .replace(/[-_]/g, ' ')  // Replace dashes and underscores with spaces
+        .replace(/\.[^/.]+$/, '') // Remove file extension
+        .trim();
+      
+      // Capitalize first letter of each word
+      title = title.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      // Truncate if too long
+      if (title.length > 30) {
+        title = title.substring(0, 27) + '...';
+      }
+      
+      return `${title} (${domain})`;
+    } catch (error) {
+      console.error('Error formatting URL:', error);
+      return urlStr;
+    }
+  }
+
   function loadUrls() {
-    chrome.storage.sync.get(['safeUrls'], function(result) {
+    chrome.storage.sync.get(['safeUrls'], async function(result) {
       const urls = result.safeUrls || [];
       
       // Clear existing list
@@ -105,34 +147,45 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update the list count
       updateListCount();
       
+      // Get the current tab
+      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
       // Populate the list
       urls.forEach(url => {
         const li = document.createElement('li');
+        li.className = 'flex items-center justify-between py-2 px-3 border-b border-gray-200';
         
-        const urlLink = document.createElement('a');
-        urlLink.href = url.startsWith('http') ? url : `https://${url}`;
-        urlLink.target = '_blank';
-        
-        try {
-          // Try to get a readable page name
-          const urlObj = new URL(urlLink.href);
-          const pageName = urlObj.pathname === '/' 
-            ? urlObj.hostname.replace(/^www\./, '')
-            : urlObj.pathname.split('/').pop() || urlObj.hostname.replace(/^www\./, '');
-          
-          urlLink.textContent = pageName;
-          urlLink.title = url; // Show full URL on hover
-        } catch (e) {
-          urlLink.textContent = url;
+        const urlText = document.createElement('span');
+        urlText.className = 'flex-grow mr-2 text-gray-700';
+        urlText.textContent = formatUrlDisplay(url);
+        if (currentTab && currentTab.url.includes(url)) {
+          const currentTag = document.createElement('span');
+          currentTag.className = 'text-xs text-gray-500 ml-2';
+          currentTag.textContent = 'CURRENT';
+          urlText.appendChild(currentTag);
         }
+        li.appendChild(urlText);
         
         const deleteButton = document.createElement('button');
-        deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
-        deleteButton.classList.add('delete-url');
+        deleteButton.className = 'delete-button';
+        const img = document.createElement('img');
+        img.src = 'icons/bin.svg';
+        img.className = 'w-4 h-4 transition-opacity duration-200';
+        img.alt = 'Delete';
+        
+        // Add hover effect
+        deleteButton.addEventListener('mouseenter', () => {
+          img.src = 'icons/bin-darker.svg';  // Switch to darker version on hover
+        });
+        
+        deleteButton.addEventListener('mouseleave', () => {
+          img.src = 'icons/bin.svg';  // Switch back to regular version
+        });
+        
+        deleteButton.appendChild(img);
         deleteButton.addEventListener('click', () => deleteUrl(url));
-
-        li.appendChild(urlLink);
         li.appendChild(deleteButton);
+        
         urlList.appendChild(li);
       });
       updateMatchingTabsCount();
@@ -142,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateListCount() {
     chrome.storage.sync.get(['safeUrls'], function(result) {
       const urls = result.safeUrls || [];
-      document.getElementById('listCount').textContent = `(${urls.length})`;
+      document.getElementById('listCount').textContent = `${urls.length}`;
     });
   }
 
@@ -156,10 +209,10 @@ document.addEventListener('DOMContentLoaded', function() {
         safeUrls.some(url => tab.url.toLowerCase().includes(url.toLowerCase()))
       ).length;
 
-      document.getElementById('matchingTabsCount').textContent = `(${matchingTabsCount})`;
+      document.getElementById('matchingTabsCount').textContent = `${matchingTabsCount}`;
     } catch (error) {
       console.error('Error counting matching tabs:', error);
-      document.getElementById('matchingTabsCount').textContent = '(0)';
+      document.getElementById('matchingTabsCount').textContent = '0';
     }
   }
 
@@ -179,6 +232,20 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Error deleting URL:', error);
     }
   }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.altKey) {
+      addAllTabsButton.classList.remove('hidden');
+      addCurrentUrlButton.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('keyup', function(e) {
+    if (!e.altKey) {
+      addAllTabsButton.classList.add('hidden');
+      addCurrentUrlButton.classList.remove('hidden');
+    }
+  });
 
   // Call updateCounts initially and whenever URLs are loaded or tabs might change
   loadUrls();
