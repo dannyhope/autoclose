@@ -1,15 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
   const urlInput = document.getElementById('urlInput');
   const addUrlButton = document.getElementById('addUrl');
+  const addCurrentUrlButton = document.getElementById('addCurrentUrl');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
-  const statusElement = document.getElementById('status');
+  const toggleListLink = document.getElementById('toggleList');
+  const urlListSection = document.getElementById('urlListSection');
 
   // Load saved URLs
   loadUrls();
 
+  // Toggle URL list visibility
+  toggleListLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    const indicator = this.querySelector('.toggle-indicator');
+    urlListSection.classList.toggle('hidden');
+    indicator.textContent = urlListSection.classList.contains('hidden') ? '▶' : '▼';
+  });
+
   // Add URL when clicking the add button
   addUrlButton.addEventListener('click', addCurrentUrl);
+
+  // Add current tab URL
+  addCurrentUrlButton.addEventListener('click', addCurrentTabUrl);
 
   // Add URL when pressing Enter in the input field
   urlInput.addEventListener('keypress', function(e) {
@@ -20,9 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {
-    showStatus('Closing tabs...', 'info');
-    const result = await chrome.runtime.sendMessage({ action: "closeTabs" });
-    showStatus(`Closed ${result.count} tabs`, 'success');
+    await chrome.runtime.sendMessage({ action: "closeTabs" });
   });
 
   function addCurrentUrl() {
@@ -32,81 +43,87 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  async function addCurrentTabUrl() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab && tab.url) {
+        // Extract full URL, including query string
+        const url = new URL(tab.url);
+        const fullUrl = `${url.hostname}${url.pathname}${url.search}`;
+        await addUrl(fullUrl);
+      }
+    } catch (error) {
+      console.error('Error adding current tab URL', error);
+    }
+  }
+
   async function addUrl(url) {
     try {
       const result = await chrome.storage.sync.get(['safeUrls']);
       const urls = result.safeUrls || [];
       if (!urls.includes(url)) {
-        urls.push(url);
+        // Add URL to the beginning of the list
+        urls.unshift(url);
         await chrome.storage.sync.set({ safeUrls: urls });
         loadUrls();
         urlInput.value = '';
-        showStatus('URL added successfully', 'success');
-      } else {
-        showStatus('URL already exists', 'error');
       }
     } catch (error) {
-      showStatus('Error adding URL', 'error');
+      console.error('Error adding URL', error);
     }
   }
 
-  async function loadUrls() {
-    try {
-      const result = await chrome.storage.sync.get(['safeUrls']);
+  function loadUrls() {
+    chrome.storage.sync.get(['safeUrls'], function(result) {
       const urls = result.safeUrls || [];
-      urlList.innerHTML = '';
       
-      if (urls.length === 0) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = 'No URLs added yet';
-        urlList.appendChild(emptyMessage);
-        return;
-      }
+      // Clear existing list
+      urlList.innerHTML = '';
 
-      urls.forEach(function(url) {
+      // Show/hide toggle link based on whether there are URLs
+      toggleListLink.style.display = urls.length === 0 ? 'none' : 'block';
+      
+      // Populate the list
+      urls.forEach(url => {
         const li = document.createElement('li');
         
-        const urlText = document.createElement('span');
-        urlText.textContent = url;
-        urlText.className = 'url-text';
+        const urlLink = document.createElement('a');
+        urlLink.href = url.startsWith('http') ? url : `https://${url}`;
+        urlLink.target = '_blank';
+        
+        try {
+          // Try to get a readable page name
+          const urlObj = new URL(urlLink.href);
+          const pageName = urlObj.pathname === '/' 
+            ? urlObj.hostname.replace(/^www\./, '')
+            : urlObj.pathname.split('/').pop() || urlObj.hostname.replace(/^www\./, '');
+          
+          urlLink.textContent = pageName;
+          urlLink.title = url; // Show full URL on hover
+        } catch (e) {
+          urlLink.textContent = url;
+        }
         
         const deleteButton = document.createElement('button');
-        deleteButton.textContent = '×';
-        deleteButton.className = 'delete-button';
-        deleteButton.title = 'Delete URL';
-        deleteButton.onclick = function() {
-          deleteUrl(url);
-        };
-        
-        li.appendChild(urlText);
+        deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+        deleteButton.classList.add('delete-url');
+        deleteButton.addEventListener('click', () => deleteUrl(url));
+
+        li.appendChild(urlLink);
         li.appendChild(deleteButton);
         urlList.appendChild(li);
       });
-    } catch (error) {
-      showStatus('Error loading URLs', 'error');
-    }
+    });
   }
 
-  async function deleteUrl(url) {
-    try {
-      const result = await chrome.storage.sync.get(['safeUrls']);
+  function deleteUrl(url) {
+    chrome.storage.sync.get(['safeUrls'], function(result) {
       const urls = result.safeUrls || [];
-      const newUrls = urls.filter(u => u !== url);
-      await chrome.storage.sync.set({ safeUrls: newUrls });
-      loadUrls();
-      showStatus('URL deleted successfully', 'success');
-    } catch (error) {
-      showStatus('Error deleting URL', 'error');
-    }
-  }
-
-  function showStatus(message, type) {
-    statusElement.textContent = message;
-    statusElement.className = `status ${type}`;
-    setTimeout(() => {
-      statusElement.textContent = '';
-      statusElement.className = 'status';
-    }, 3000);
+      const updatedUrls = urls.filter(u => u !== url);
+      
+      chrome.storage.sync.set({ safeUrls: updatedUrls }, function() {
+        loadUrls();
+      });
+    });
   }
 });
