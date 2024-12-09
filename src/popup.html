@@ -5,11 +5,11 @@
   <link rel="stylesheet" type="text/css" href="css/styles.css">
 </head>
 <body>
-    <button id="closeTabs" class="close-tabs-button">Close matching tabs</button>
+    <button id="closeTabs" class="close-tabs-button">Close matching tabs <span id="matchingTabsCount" class="count-badge">(0)</span></button>
     <button id="addCurrentUrl">Add current tab to list</button>
     <button id="addAllTabs">Add all open tabs</button>
 
-    <a href="#" id="toggleList" class="toggle-list"><span class="toggle-indicator">&#9658;</span> Your list</a>
+    <a href="#" id="toggleList" class="toggle-list"><span class="toggle-indicator">&#9658;</span> Your list <span id="listCount" class="count-badge">(0)</span></a>
     
     <div id="urlListSection" class="url-list-section hidden">
       <ul id="urlList"></ul>
