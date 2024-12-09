@@ -49,7 +49,6 @@ Safe to Close is a Chrome extension that helps users manage their browser tabs b
 - Tab closing operations must complete within 1000ms
 
 ## Future Enhancements (Backlog)
-1. Add ability to edit existing URL patterns
 2. Add support for regex patterns
 3. Add ability to categorize URLs
 4. Add statistics about closed tabs
@@ -57,3 +56,6 @@ Safe to Close is a Chrome extension that helps users manage their browser tabs b
 6. Add export/import functionality for URL lists
 7. Add keyboard shortcuts for common operations
 8. Add ability to temporarily disable the extension
+
+## Unsorted
+- if it’s in the list, highlight the current tab

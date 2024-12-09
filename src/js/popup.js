@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const indicator = this.querySelector('.toggle-indicator');
     urlListSection.classList.toggle('hidden');
-    indicator.textContent = urlListSection.classList.contains('hidden') ? '▶' : '▼';
+    indicator.innerHTML = urlListSection.classList.contains('hidden') ? '&#9654;' : '&#9660;';
   });
 
   // Add URL when clicking the add button
@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
         await chrome.storage.sync.set({ safeUrls: urls });
         loadUrls();
         urlInput.value = '';
+        updateListCount();
+        updateMatchingTabsCount();
       }
     } catch (error) {
       console.error('Error adding URL', error);
@@ -99,6 +101,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Show/hide toggle link based on whether there are URLs
       toggleListLink.style.display = urls.length === 0 ? 'none' : 'block';
+      
+      // Update the list count
+      updateListCount();
       
       // Populate the list
       urls.forEach(url => {
@@ -130,42 +135,56 @@ document.addEventListener('DOMContentLoaded', function() {
         li.appendChild(deleteButton);
         urlList.appendChild(li);
       });
+      updateMatchingTabsCount();
     });
   }
 
-  function deleteUrl(url) {
+  function updateListCount() {
     chrome.storage.sync.get(['safeUrls'], function(result) {
       const urls = result.safeUrls || [];
-      const updatedUrls = urls.filter(u => u !== url);
+      document.getElementById('listCount').textContent = `(${urls.length})`;
+    });
+  }
+
+  async function updateMatchingTabsCount() {
+    try {
+      const result = await chrome.storage.sync.get(['safeUrls']);
+      const safeUrls = result.safeUrls || [];
       
-      chrome.storage.sync.set({ safeUrls: updatedUrls }, function() {
-        loadUrls();
-      });
-    });
+      const tabs = await chrome.tabs.query({});
+      const matchingTabsCount = tabs.filter(tab => 
+        safeUrls.some(url => tab.url.toLowerCase().includes(url.toLowerCase()))
+      ).length;
+
+      document.getElementById('matchingTabsCount').textContent = `(${matchingTabsCount})`;
+    } catch (error) {
+      console.error('Error counting matching tabs:', error);
+      document.getElementById('matchingTabsCount').textContent = '(0)';
+    }
   }
 
-  function updateCounts() {
-    // Update list count
-    chrome.storage.sync.get(['safeUrls'], function(result) {
+  async function deleteUrl(url) {
+    try {
+      const result = await chrome.storage.sync.get(['safeUrls']);
       const urls = result.safeUrls || [];
-      const listCount = urls.length;
-      document.getElementById('listCount').textContent = `(${listCount})`;
-    });
-
-    // Update matching tabs count
-    chrome.tabs.query({}, function(tabs) {
-      const matchingTabsCount = tabs.filter(tab => {
-        // Define your matching criteria here
-        return true; // Placeholder: replace with actual condition
-      }).length;
-      document.getElementById('matchingTabsCount').textContent = `(${matchingTabsCount})`;
-    });
+      const index = urls.indexOf(url);
+      if (index > -1) {
+        urls.splice(index, 1);
+        await chrome.storage.sync.set({ safeUrls: urls });
+        loadUrls();
+        updateListCount();
+        updateMatchingTabsCount();
+      }
+    } catch (error) {
+      console.error('Error deleting URL:', error);
+    }
   }
 
   // Call updateCounts initially and whenever URLs are loaded or tabs might change
   loadUrls();
-  updateCounts();
-  chrome.tabs.onUpdated.addListener(updateCounts);
-  chrome.tabs.onRemoved.addListener(updateCounts);
-  chrome.tabs.onCreated.addListener(updateCounts);
+  updateListCount();
+  updateMatchingTabsCount();
+  chrome.tabs.onUpdated.addListener(updateMatchingTabsCount);
+  chrome.tabs.onRemoved.addListener(updateMatchingTabsCount);
+  chrome.tabs.onCreated.addListener(updateMatchingTabsCount);
 });

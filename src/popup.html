@@ -2,23 +2,27 @@
 <html>
 <head>
   <title>Auto-close tabs</title>
-  <link rel="stylesheet" type="text/css" href="css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <button id="closeTabs" class="close-tabs-button">Close matching tabs <span id="matchingTabsCount" class="count-badge">(0)</span></button>
-    <button id="addCurrentUrl">Add current tab to list</button>
-    <button id="addAllTabs">Add all open tabs</button>
+<body class="p-4 bg-gray-100 w-64">
+    <button id="closeTabs" class="bg-blue-500 text-white py-2 px-4 rounded mb-2">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 rounded-full px-2">(0)</span></button>
+    <button id="addCurrentUrl" class="bg-green-500 text-white py-2 px-4 rounded mb-2">Add current tab to list</button>
+    <button id="addAllTabs" class="bg-green-500 text-white py-2 px-4 rounded mb-2">Add all open tabs</button>
 
-    <a href="#" id="toggleList" class="toggle-list"><span class="toggle-indicator">&#9658;</span> Your list <span id="listCount" class="count-badge">(0)</span></a>
+    <a href="#" id="toggleList" class="text-blue-500 hover:text-blue-700 block mb-2">
+        <span class="toggle-indicator transform transition-transform duration-200">&#9654;</span> Your list 
+        <span id="listCount" class="text-xs bg-gray-200 rounded-full px-2">(0)</span>
+    </a>
     
-    <div id="urlListSection" class="url-list-section hidden">
-      <ul id="urlList"></ul>
-      <div class="add-url-section">
-        <input type="text" id="urlInput" placeholder="Enter URL pattern (e.g., example.com)">
-        <button id="addUrl">Add</button>
+    <div id="urlListSection" class="hidden">
+      <ul id="urlList" class="list-none p-0"></ul>
+      <div class="add-url-section flex gap-2 mb-4">
+        <input type="text" id="urlInput" class="border p-2 rounded w-full" placeholder="Enter URL pattern (e.g., example.com)">
+        <button id="addUrl" class="bg-blue-500 text-white py-2 px-4 rounded">Add</button>
       </div>
     </div>
 
   <script src="js/popup.js"></script>
+
 </body>
 </html>
