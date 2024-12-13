@@ -5,12 +5,10 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="p-4 bg-gray-100 w-96">
-    <button id="closeTabs" class="bg-blue-500 text-white py-2 px-4 rounded mb-2">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
+    <button id="closeTabs" class="bg-blue-500 text-white py-2 px-4 rounded mb-2 w-full">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
     <br>
-    <div class="button-placeholder h-10 mb-2">
-        <button id="addCurrentUrl" class="bg-green-500 text-white py-2 px-4 rounded">Add current tab to list</button>
-        <button id="addAllTabs" class="bg-green-500 text-white py-2 px-4 rounded hidden">Add all open tabs</button>
-    </div>
+    <button id="addCurrentUrl" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
+    <button id="addAllTabs" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
 
     <a href="#" id="toggleList" class="text-gray-700 block mb-2">
         <span class="toggle-indicator transform transition-transform duration-200">&#9654;</span> Your list 

@@ -31,10 +31,41 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add URL when clicking the add button
   addUrlButton.addEventListener('click', addCurrentUrl);
 
-  // Add current tab URL
-  addCurrentUrlButton.addEventListener('click', addCurrentTabUrl);
+  // Handle option/alt key state
+  let isOptionPressed = false;
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Alt' && !isOptionPressed) {
+      isOptionPressed = true;
+      addCurrentUrlButton.textContent = 'Add tab to list and close';
+      addAllTabsButton.textContent = 'Add all tabs to list and close';
+      addCurrentUrlButton.style.display = 'block';
+      addAllTabsButton.style.display = 'block';
+    }
+  });
 
-  // Add all open tabs
+  document.addEventListener('keyup', function(e) {
+    if (e.key === 'Alt') {
+      isOptionPressed = false;
+      addCurrentUrlButton.textContent = 'Add tab to list';
+      addAllTabsButton.textContent = 'Add all tabs to list';
+      addCurrentUrlButton.style.display = 'block';
+      addAllTabsButton.style.display = 'block';
+    }
+  });
+
+  // Ensure buttons are visible by default
+  addCurrentUrlButton.style.display = 'block';
+  addAllTabsButton.style.display = 'block';
+
+  // Add current tab URL with optional close
+  addCurrentUrlButton.addEventListener('click', async function() {
+    await addCurrentTabUrl();
+    if (isOptionPressed) {
+      await chrome.runtime.sendMessage({ action: "closeTabs" });
+    }
+  });
+
+  // Add all open tabs with optional close
   addAllTabsButton.addEventListener('click', async function() {
     try {
       const tabs = await chrome.tabs.query({ currentWindow: true });
@@ -44,6 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
           const fullUrl = `${url.hostname}${url.pathname}${url.search}`;
           await addUrl(fullUrl);
         }
+      }
+      if (isOptionPressed) {
+        await chrome.runtime.sendMessage({ action: "closeTabs" });
       }
     } catch (error) {
       console.error('Error adding all tabs:', error);
@@ -233,17 +267,51 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  document.addEventListener('keydown', function(e) {
-    if (e.altKey) {
-      addAllTabsButton.classList.remove('hidden');
-      addCurrentUrlButton.classList.add('hidden');
+  async function closeTabs() {
+    try {
+      const result = await chrome.storage.sync.get(['safeUrls']);
+      const safeUrls = result.safeUrls || [];
+      
+      // Query all tabs in the current window
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      
+      // Find matching tabs
+      const matchingTabs = tabs.filter(tab => 
+        safeUrls.some(safeUrl => 
+          tab.url.includes(safeUrl)
+        )
+      );
+      
+      // Deduplicate tabs by URL
+      const uniqueTabsToClose = [];
+      const seenUrls = new Set();
+      
+      matchingTabs.forEach(tab => {
+        // Normalize URL to remove trailing slashes and protocol
+        const normalizedUrl = tab.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        
+        if (!seenUrls.has(normalizedUrl)) {
+          uniqueTabsToClose.push(tab);
+          seenUrls.add(normalizedUrl);
+        }
+      });
+      
+      // Close unique matching tabs
+      if (uniqueTabsToClose.length > 0) {
+        const tabIds = uniqueTabsToClose.map(tab => tab.id);
+        await chrome.tabs.remove(tabIds);
+        
+        // Update matching tabs count
+        updateMatchingTabsCount();
+      }
+    } catch (error) {
+      console.error('Error closing tabs:', error);
     }
-  });
+  }
 
-  document.addEventListener('keyup', function(e) {
-    if (!e.altKey) {
-      addAllTabsButton.classList.add('hidden');
-      addCurrentUrlButton.classList.remove('hidden');
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === "closeTabs") {
+      closeTabs();
     }
   });
 

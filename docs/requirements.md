@@ -56,6 +56,3 @@ Safe to Close is a Chrome extension that helps users manage their browser tabs b
 6. Add export/import functionality for URL lists
 7. Add keyboard shortcuts for common operations
 8. Add ability to temporarily disable the extension
-
-## Unsorted
-- if it’s in the list, highlight the current tab
