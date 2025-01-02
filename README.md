@@ -4,7 +4,7 @@ You tell it which tabs you often have open which you consider always safe to clo
 
 # Install
 
-You can try this extension before it’s in the Chrome Store, by:
+You can try this extension before it’s in the Chrome Web Store, by:
  1. download Autoclose.zip – https://github.com/dannyhope/autoclose/archive/refs/heads/main.zip
  2. unzip it
  3. open Chrome
