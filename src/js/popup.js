@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const addUrlButton = document.getElementById('addUrl');
   const addCurrentUrlButton = document.getElementById('addCurrentUrl');
   const addAllTabsButton = document.getElementById('addAllTabs');
+  const viewFullListButton = document.getElementById('viewFullList');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
   const toggleListLink = document.getElementById('toggleList');
@@ -94,6 +95,13 @@ document.addEventListener('DOMContentLoaded', function() {
       addCurrentUrl();
     }
   });
+
+  if (viewFullListButton) {
+    viewFullListButton.addEventListener('click', function() {
+      const url = chrome.runtime.getURL('full-list.html');
+      chrome.tabs.create({ url: url });
+    });
+  }
 
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Auto-close tabs – Full list</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="p-4 bg-gray-100 text-gray-900 w-[480px]">
+  <h1 class="text-lg font-semibold mb-2">Tabs that would be auto-closed</h1>
+  <p class="text-xs text-gray-600 mb-4">Showing every URL pattern in your list, and whether it is currently open.</p>
+
+  <div id="fullListStatus" class="text-xs text-gray-500 mb-2"></div>
+
+  <ul id="fullUrlList" class="list-none p-0 m-0 space-y-1 text-sm"></ul>
+
+  <div class="mt-4 flex justify-between items-center text-[11px] text-gray-500 border-t border-gray-200 pt-2">
+    <span>Green items are currently open. Grey items are not open.</span>
+    <span id="fullListTimestamp"></span>
+  </div>
+
+  <script src="js/full-list.js"></script>
+</body>
+</html>
