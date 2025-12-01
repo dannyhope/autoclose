@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const closeTabsButton = document.getElementById('closeTabs');
   const toggleListLink = document.getElementById('toggleList');
   const urlListSection = document.getElementById('urlListSection');
+  const popupTimestamp = document.getElementById('popupTimestamp');
 
   // Load saved URLs
   loadUrls();
@@ -26,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const isOpen = !urlListSection.classList.contains('hidden');
     indicator.innerHTML = isOpen ? '&#9660;' : '&#9654;';
     chrome.storage.sync.set({ listToggleState: isOpen });
+    if (isOpen) {
+      urlListSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 
   // Add URL when clicking the add button
@@ -135,93 +139,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function formatUrlDisplay(urlStr) {
-    try {
-      const url = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
-      const domain = url.hostname.replace(/^www\./, '');
+  // Sort URLs by domain, path, and title
+  function sortUrls(urls) {
+    return urls.sort((a, b) => {
+      const urlA = new URL(a);
+      const urlB = new URL(b);
       
-      // Get the page title from the pathname
-      let title = url.pathname === '/' 
-        ? domain 
-        : url.pathname.split('/').pop() || domain;
-      
-      // Clean up the title
-      title = title
-        .replace(/[-_]/g, ' ')  // Replace dashes and underscores with spaces
-        .replace(/\.[^/.]+$/, '') // Remove file extension
-        .trim();
-      
-      // Capitalize first letter of each word
-      title = title.split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      
-      // Truncate if too long
-      if (title.length > 30) {
-        title = title.substring(0, 27) + '...';
+      // First sort by domain
+      if (urlA.hostname !== urlB.hostname) {
+        return urlA.hostname.localeCompare(urlB.hostname);
       }
       
-      return `${title} (${domain})`;
-    } catch (error) {
-      console.error('Error formatting URL:', error);
+      // Then by path
+      if (urlA.pathname !== urlB.pathname) {
+        return urlA.pathname.localeCompare(urlB.pathname);
+      }
+      
+      // Finally by the full URL (which includes query params)
+      return urlA.href.localeCompare(urlB.href);
+    });
+  }
+
+  // Format URL for display with favicon and open indicator
+  async function formatUrlDisplay(urlStr) {
+    try {
+      const url = new URL(urlStr);
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=16`;
+      
+      // Check if this URL is currently open in any tab
+      const tabs = await chrome.tabs.query({});
+      const isOpen = tabs.some(tab => tab.url.includes(urlStr));
+      
+      const displayUrl = url.hostname + url.pathname;
+      const openTag = isOpen ? '<span class="open-tag">open</span>' : '';
+      
+      return `
+        <div class="url-item">
+          <img src="${faviconUrl}" class="favicon" alt="" />
+          <span class="url-text">${displayUrl}</span>
+          ${openTag}
+          <button class="delete-btn" data-url="${urlStr}">×</button>
+        </div>
+      `;
+    } catch (e) {
+      console.error('Error formatting URL:', e);
       return urlStr;
     }
   }
 
-  function loadUrls() {
+  // Update loadUrls to use the new sorting and formatting
+  async function loadUrls() {
+    console.log('Loading URLs...');
     chrome.storage.sync.get(['safeUrls'], async function(result) {
+      console.log('Retrieved URLs from storage:', result);
       const urls = result.safeUrls || [];
-      
-      // Clear existing list
+      const sortedUrls = sortUrls(urls);
       urlList.innerHTML = '';
-
-      // Show/hide toggle link based on whether there are URLs
-      toggleListLink.style.display = urls.length === 0 ? 'none' : 'block';
       
-      // Update the list count
-      updateListCount();
-      
-      // Get the current tab
-      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-      // Populate the list
-      urls.forEach(url => {
+      for (const url of sortedUrls) {
         const li = document.createElement('li');
-        li.className = 'flex items-center justify-between py-2 px-3 border-b border-gray-200';
-        
-        const urlText = document.createElement('span');
-        urlText.className = 'flex-grow mr-2 text-gray-700';
-        urlText.textContent = formatUrlDisplay(url);
-        if (currentTab && currentTab.url.includes(url)) {
-          const currentTag = document.createElement('span');
-          currentTag.className = 'text-xs text-gray-500 ml-2';
-          currentTag.textContent = 'CURRENT';
-          urlText.appendChild(currentTag);
-        }
-        li.appendChild(urlText);
-        
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'delete-button';
-        const img = document.createElement('img');
-        img.src = 'icons/bin.svg';
-        img.className = 'w-4 h-4 transition-opacity duration-200';
-        img.alt = 'Delete';
-        
-        // Add hover effect
-        deleteButton.addEventListener('mouseenter', () => {
-          img.src = 'icons/bin-darker.svg';  // Switch to darker version on hover
-        });
-        
-        deleteButton.addEventListener('mouseleave', () => {
-          img.src = 'icons/bin.svg';  // Switch back to regular version
-        });
-        
-        deleteButton.appendChild(img);
-        deleteButton.addEventListener('click', () => deleteUrl(url));
-        li.appendChild(deleteButton);
-        
+        li.innerHTML = await formatUrlDisplay(url);
         urlList.appendChild(li);
-      });
+        
+        // Add click handler for delete button
+        const deleteBtn = li.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => deleteUrl(url));
+      }
+      
+      updateListCount();
       updateMatchingTabsCount();
     });
   }
@@ -322,4 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.tabs.onUpdated.addListener(updateMatchingTabsCount);
   chrome.tabs.onRemoved.addListener(updateMatchingTabsCount);
   chrome.tabs.onCreated.addListener(updateMatchingTabsCount);
+
+  if (popupTimestamp) {
+    popupTimestamp.textContent = new Date().toLocaleString();
+  }
 });
