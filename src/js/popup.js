@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const urlInput = document.getElementById('urlInput');
-  const addUrlButton = document.getElementById('addUrl');
   const addCurrentUrlButton = document.getElementById('addCurrentUrl');
   const addAllTabsButton = document.getElementById('addAllTabs');
-  const viewFullListButton = document.getElementById('viewFullList');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
   const toggleListLink = document.getElementById('toggleList');
@@ -32,9 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
       urlListSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
-
-  // Add URL when clicking the add button
-  addUrlButton.addEventListener('click', addCurrentUrl);
 
   // Handle option/alt key state
   let isOptionPressed = false;
@@ -76,8 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const tabs = await chrome.tabs.query({ currentWindow: true });
       for (const tab of tabs) {
         if (tab.url) {
-          const url = new URL(tab.url);
-          const fullUrl = `${url.hostname}${url.pathname}${url.search}`;
+          let fullUrl = tab.url;
+          try {
+            const parsed = new URL(tab.url);
+            fullUrl = `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+          } catch (e) {
+            // Fall back to the raw tab URL string if parsing fails
+            fullUrl = tab.url;
+          }
           await addUrl(fullUrl);
         }
       }
@@ -89,39 +89,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Add URL when pressing Enter in the input field
-  urlInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      addCurrentUrl();
-    }
-  });
-
-  if (viewFullListButton) {
-    viewFullListButton.addEventListener('click', function() {
-      const url = chrome.runtime.getURL('full-list.html');
-      chrome.tabs.create({ url: url });
-    });
-  }
-
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {
     await chrome.runtime.sendMessage({ action: "closeTabs" });
   });
 
-  function addCurrentUrl() {
-    const url = urlInput.value.trim();
-    if (url) {
-      addUrl(url);
-    }
-  }
-
   async function addCurrentTabUrl() {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab && tab.url) {
-        // Extract full URL, including query string
-        const url = new URL(tab.url);
-        const fullUrl = `${url.hostname}${url.pathname}${url.search}`;
+        // Extract hostname/path/search when possible, but be safe with unusual URLs
+        let fullUrl = tab.url;
+        try {
+          const parsed = new URL(tab.url);
+          fullUrl = `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+        } catch (e) {
+          fullUrl = tab.url;
+        }
         await addUrl(fullUrl);
       }
     } catch (error) {
@@ -138,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
         urls.unshift(url);
         await chrome.storage.sync.set({ safeUrls: urls });
         loadUrls();
-        urlInput.value = '';
         updateListCount();
         updateMatchingTabsCount();
       }
@@ -149,44 +132,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Sort URLs by domain, path, and title
   function sortUrls(urls) {
-    return urls.sort((a, b) => {
-      const urlA = new URL(a);
-      const urlB = new URL(b);
-      
-      // First sort by domain
-      if (urlA.hostname !== urlB.hostname) {
-        return urlA.hostname.localeCompare(urlB.hostname);
-      }
-      
-      // Then by path
-      if (urlA.pathname !== urlB.pathname) {
-        return urlA.pathname.localeCompare(urlB.pathname);
-      }
-      
-      // Finally by the full URL (which includes query params)
-      return urlA.href.localeCompare(urlB.href);
-    });
+    return urls.slice().sort((a, b) => String(a).localeCompare(String(b)));
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   // Format URL for display with favicon and open indicator
-  async function formatUrlDisplay(urlStr) {
+  async function formatUrlDisplay(urlStr, isOpen) {
     try {
-      const url = new URL(urlStr);
-      const faviconUrl = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=16`;
-      
-      // Check if this URL is currently open in any tab
-      const tabs = await chrome.tabs.query({});
-      const isOpen = tabs.some(tab => tab.url.includes(urlStr));
-      
-      const displayUrl = url.hostname + url.pathname;
-      const openTag = isOpen ? '<span class="open-tag">open</span>' : '';
-      
+      let hostname;
+      let pathname;
+
+      try {
+        const parsed = new URL(urlStr);
+        hostname = parsed.hostname;
+        pathname = parsed.pathname;
+      } catch (e) {
+        const withoutProto = urlStr.replace(/^https?:\/\//, '');
+        const parts = withoutProto.split('/');
+        hostname = parts[0] || urlStr;
+        pathname = parts.length > 1 ? '/' + parts.slice(1).join('/') : '';
+      }
+
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=16`;
+      const displayUrl = hostname + pathname;
+      const openTag = isOpen ? '<span class="open-tag">🔴</span>' : '<span class="open-tag"></span>';
+
       return `
-        <div class="url-item">
-          <img src="${faviconUrl}" class="favicon" alt="" />
-          <span class="url-text">${displayUrl}</span>
-          ${openTag}
-          <button class="delete-btn" data-url="${urlStr}">×</button>
+        <div class="url-item flex items-center gap-2 px-1">
+          <img src="${faviconUrl}" class="favicon w-4 h-4 flex-none" alt="" />
+          <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(urlStr)}" title="${escapeHtml(urlStr)}">${displayUrl}</span>
+          <span class="flex-none w-4 text-center">${openTag}</span>
+          <button class="delete-btn flex-none text-gray-500 hover:text-red-600 px-1" data-url="${urlStr}" title="Remove this pattern"><img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" /></button>
         </div>
       `;
     } catch (e) {
@@ -202,16 +186,41 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Retrieved URLs from storage:', result);
       const urls = result.safeUrls || [];
       const sortedUrls = sortUrls(urls);
+      const tabs = await chrome.tabs.query({});
+
+      const items = sortedUrls.map(url => {
+        const isOpen = tabs.some(tab => tab.url && tab.url.toLowerCase().includes(String(url).toLowerCase()));
+        return { url, isOpen };
+      });
+
+      items.sort((a, b) => {
+        if (a.isOpen !== b.isOpen) {
+          return a.isOpen ? -1 : 1;
+        }
+        return String(a.url).localeCompare(String(b.url));
+      });
       urlList.innerHTML = '';
       
-      for (const url of sortedUrls) {
+      for (const item of items) {
         const li = document.createElement('li');
-        li.innerHTML = await formatUrlDisplay(url);
+        li.innerHTML = await formatUrlDisplay(item.url, item.isOpen);
         urlList.appendChild(li);
-        
+
+        const urlText = li.querySelector('.url-text');
+        if (urlText) {
+          const handleOpen = () => openUrlInNewTab(item.url);
+          urlText.addEventListener('click', handleOpen);
+          urlText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleOpen();
+            }
+          });
+        }
+
         // Add click handler for delete button
         const deleteBtn = li.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', () => deleteUrl(url));
+        deleteBtn.addEventListener('click', () => deleteUrl(item.url));
       }
       
       updateListCount();
@@ -257,6 +266,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error('Error deleting URL:', error);
+    }
+  }
+
+  async function openUrlInNewTab(urlStr) {
+    try {
+      let targetUrl = String(urlStr || '');
+      if (!/^https?:\/\//i.test(targetUrl)) {
+        targetUrl = 'https://' + targetUrl;
+      }
+      await chrome.tabs.create({ url: targetUrl });
+    } catch (error) {
+      console.error('Error opening URL in new tab', error);
     }
   }
 

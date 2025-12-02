@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
   <title>Auto-close tabs</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+   <style>
+    html, body {
+      width: 480px;
+      min-width: 480px;
+    }
+  </style>
 </head>
-<body class="p-4 bg-gray-100 w-96">
+<body class="p-4 bg-gray-100">
     <button id="closeTabs" class="bg-blue-500 text-white py-2 px-4 rounded mb-2 w-full">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
     <br>
     <button id="addCurrentUrl" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
     <button id="addAllTabs" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
-
-    <button id="viewFullList" class="bg-gray-200 text-gray-800 py-1.5 px-3 rounded mb-3 w-full text-sm">View full list of auto-closed URLs</button>
 
     <a href="#" id="toggleList" class="text-gray-700 block mb-2">
         <span class="toggle-indicator transform transition-transform duration-200">&#9654;</span> Your list 
@@ -19,15 +24,11 @@
     
     <div id="urlListSection" class="hidden">
       <ul id="urlList" class="list-none p-0"></ul>
-      <div class="add-url-section flex gap-2 mb-4">
-        <input type="text" id="urlInput" class="border p-2 rounded w-full" placeholder="Enter URL pattern (e.g., example.com)">
-        <button id="addUrl" class="bg-blue-500 text-white py-2 px-4 rounded">Add</button>
-      </div>
     </div>
 
     <div class="mt-4 text-xs text-gray-500 text-right" id="popupTimestamp"></div>
 
     <script src="js/popup.js"></script>
 
-</body>
+ </body>
 </html>
