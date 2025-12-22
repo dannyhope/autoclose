@@ -3,12 +3,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const addAllTabsButton = document.getElementById('addAllTabs');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
+  const alwaysCloseDupesCheckbox = document.getElementById('alwaysCloseDupes');
   const toggleListLink = document.getElementById('toggleList');
   const urlListSection = document.getElementById('urlListSection');
   const popupTimestamp = document.getElementById('popupTimestamp');
 
+  let highlightedTabIds = [];
+
   // Load saved URLs
   loadUrls();
+  highlightMatchingTabs();
 
   // Restore toggle state
   chrome.storage.sync.get(['listToggleState'], function(result) {
@@ -16,6 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
     urlListSection.classList.toggle('hidden', !isOpen);
     toggleListLink.querySelector('.toggle-indicator').innerHTML = isOpen ? '&#9660;' : '&#9654;';
   });
+
+  // Restore "Always close dupes" state
+  chrome.storage.sync.get(['alwaysCloseDupes'], function(result) {
+    const alwaysCloseDupes = result.alwaysCloseDupes || false;
+    if (alwaysCloseDupesCheckbox) {
+      alwaysCloseDupesCheckbox.checked = Boolean(alwaysCloseDupes);
+    }
+  });
+
+  if (alwaysCloseDupesCheckbox) {
+    alwaysCloseDupesCheckbox.addEventListener('change', function() {
+      chrome.storage.sync.set({ alwaysCloseDupes: Boolean(alwaysCloseDupesCheckbox.checked) });
+    });
+  }
 
   // Toggle URL list visibility
   toggleListLink.addEventListener('click', function(e) {
@@ -59,8 +77,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add current tab URL with optional close
   addCurrentUrlButton.addEventListener('click', async function() {
     await addCurrentTabUrl();
+    await highlightMatchingTabs();
     if (isOptionPressed) {
       await chrome.runtime.sendMessage({ action: "closeTabs" });
+      await clearHighlightedTabs();
     }
   });
 
@@ -81,8 +101,10 @@ document.addEventListener('DOMContentLoaded', function() {
           await addUrl(fullUrl);
         }
       }
+      await highlightMatchingTabs();
       if (isOptionPressed) {
         await chrome.runtime.sendMessage({ action: "closeTabs" });
+        await clearHighlightedTabs();
       }
     } catch (error) {
       console.error('Error adding all tabs:', error);
@@ -92,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {
     await chrome.runtime.sendMessage({ action: "closeTabs" });
+    await clearHighlightedTabs();
   });
 
   async function addCurrentTabUrl() {
@@ -124,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadUrls();
         updateListCount();
         updateMatchingTabsCount();
+        await highlightMatchingTabs();
       }
     } catch (error) {
       console.error('Error adding URL', error);
@@ -144,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .replace(/'/g, '&#39;');
   }
 
-  // Format URL for display with favicon and open indicator
+  // Format URL for display with open indicator (favicon is shown at domain level)
   async function formatUrlDisplay(urlStr, isOpen) {
     try {
       let hostname;
@@ -153,21 +177,20 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const parsed = new URL(urlStr);
         hostname = parsed.hostname;
-        pathname = parsed.pathname;
+        pathname = parsed.pathname + parsed.search;
       } catch (e) {
         const withoutProto = urlStr.replace(/^https?:\/\//, '');
         const parts = withoutProto.split('/');
         hostname = parts[0] || urlStr;
-        pathname = parts.length > 1 ? '/' + parts.slice(1).join('/') : '';
+        const rest = parts.slice(1).join('/');
+        pathname = rest ? '/' + rest : '';
       }
 
-      const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=16`;
-      const displayUrl = hostname + pathname;
+      const displayUrl = pathname || '/';
       const openTag = isOpen ? '<span class="open-tag">🔴</span>' : '<span class="open-tag"></span>';
 
       return `
-        <div class="url-item flex items-center gap-2 px-1">
-          <img src="${faviconUrl}" class="favicon w-4 h-4 flex-none" alt="" />
+        <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
           <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(urlStr)}" title="${escapeHtml(urlStr)}">${displayUrl}</span>
           <span class="flex-none w-4 text-center">${openTag}</span>
           <button class="delete-btn flex-none text-gray-500 hover:text-red-600 px-1" data-url="${urlStr}" title="Remove this pattern"><img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" /></button>
@@ -188,39 +211,96 @@ document.addEventListener('DOMContentLoaded', function() {
       const sortedUrls = sortUrls(urls);
       const tabs = await chrome.tabs.query({});
 
+      // Build flat list with open state
       const items = sortedUrls.map(url => {
         const isOpen = tabs.some(tab => tab.url && tab.url.toLowerCase().includes(String(url).toLowerCase()));
         return { url, isOpen };
       });
 
-      items.sort((a, b) => {
-        if (a.isOpen !== b.isOpen) {
-          return a.isOpen ? -1 : 1;
+      // Derive domain/hostname for grouping
+      const itemsWithDomain = items.map(item => {
+        let hostname;
+        try {
+          const parsed = new URL(String(item.url));
+          hostname = parsed.hostname;
+        } catch (e) {
+          const withoutProto = String(item.url).replace(/^https?:\/\//, '');
+          const parts = withoutProto.split('/');
+          hostname = parts[0] || String(item.url);
         }
-        return String(a.url).localeCompare(String(b.url));
+        return { ...item, domain: hostname };
       });
-      urlList.innerHTML = '';
-      
-      for (const item of items) {
-        const li = document.createElement('li');
-        li.innerHTML = await formatUrlDisplay(item.url, item.isOpen);
-        urlList.appendChild(li);
 
-        const urlText = li.querySelector('.url-text');
-        if (urlText) {
-          const handleOpen = () => openUrlInNewTab(item.url);
-          urlText.addEventListener('click', handleOpen);
-          urlText.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleOpen();
-            }
-          });
+      // Group by domain
+      const domainMap = new Map();
+      itemsWithDomain.forEach(item => {
+        const key = String(item.domain || '').toLowerCase();
+        if (!domainMap.has(key)) {
+          domainMap.set(key, { domain: item.domain, items: [] });
         }
+        domainMap.get(key).items.push(item);
+      });
 
-        // Add click handler for delete button
-        const deleteBtn = li.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', () => deleteUrl(item.url));
+      // Sort domains alphabetically
+      const domainGroups = Array.from(domainMap.values()).sort((a, b) => {
+        return String(a.domain).localeCompare(String(b.domain));
+      });
+
+      // Within each domain: open first, then alphabetically by URL
+      domainGroups.forEach(group => {
+        group.items.sort((a, b) => {
+          if (a.isOpen !== b.isOpen) {
+            return a.isOpen ? -1 : 1;
+          }
+          return String(a.url).localeCompare(String(b.url));
+        });
+      });
+
+      urlList.innerHTML = '';
+
+      for (const group of domainGroups) {
+        // Domain header
+        const headerLi = document.createElement('li');
+        headerLi.className = 'flex items-center gap-2 text-[11px] text-gray-500 mt-3 mb-0 px-1';
+
+        const faviconImg = document.createElement('img');
+        faviconImg.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(group.domain)}&sz=16`;
+        faviconImg.alt = '';
+        faviconImg.className = 'w-4 h-4 flex-none';
+        faviconImg.title = group.domain;
+
+        const domainSpan = document.createElement('span');
+        domainSpan.textContent = group.domain;
+        domainSpan.title = group.domain;
+
+        headerLi.appendChild(faviconImg);
+        headerLi.appendChild(domainSpan);
+        urlList.appendChild(headerLi);
+
+        // URLs under this domain
+        for (const item of group.items) {
+          const li = document.createElement('li');
+          li.innerHTML = await formatUrlDisplay(item.url, item.isOpen);
+          urlList.appendChild(li);
+
+          const urlText = li.querySelector('.url-text');
+          if (urlText) {
+            const handleOpen = () => openUrlInNewTab(item.url);
+            urlText.addEventListener('click', handleOpen);
+            urlText.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleOpen();
+              }
+            });
+          }
+
+          // Add click handler for delete button
+          const deleteBtn = li.querySelector('.delete-btn');
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => deleteUrl(item.url));
+          }
+        }
       }
       
       updateListCount();
@@ -263,6 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadUrls();
         updateListCount();
         updateMatchingTabsCount();
+        await highlightMatchingTabs();
       }
     } catch (error) {
       console.error('Error deleting URL:', error);
@@ -281,53 +362,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  async function closeTabs() {
+  async function getMatchingTabs() {
     try {
       const result = await chrome.storage.sync.get(['safeUrls']);
       const safeUrls = result.safeUrls || [];
-      
-      // Query all tabs in the current window
-      const tabs = await chrome.tabs.query({ currentWindow: true });
-      
-      // Find matching tabs
-      const matchingTabs = tabs.filter(tab => 
-        safeUrls.some(safeUrl => 
-          tab.url.includes(safeUrl)
-        )
-      );
-      
-      // Deduplicate tabs by URL
-      const uniqueTabsToClose = [];
-      const seenUrls = new Set();
-      
-      matchingTabs.forEach(tab => {
-        // Normalize URL to remove trailing slashes and protocol
-        const normalizedUrl = tab.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-        
-        if (!seenUrls.has(normalizedUrl)) {
-          uniqueTabsToClose.push(tab);
-          seenUrls.add(normalizedUrl);
-        }
-      });
-      
-      // Close unique matching tabs
-      if (uniqueTabsToClose.length > 0) {
-        const tabIds = uniqueTabsToClose.map(tab => tab.id);
-        await chrome.tabs.remove(tabIds);
-        
-        // Update matching tabs count
-        updateMatchingTabsCount();
+      if (!safeUrls.length) {
+        return [];
       }
-    } catch (error) {
-      console.error('Error closing tabs:', error);
+
+      const tabs = await chrome.tabs.query({});
+      return tabs.filter(tab => {
+        if (!tab.url) return false;
+        const urlLower = tab.url.toLowerCase();
+        return safeUrls.some(safeUrl => urlLower.includes(String(safeUrl).toLowerCase()));
+      });
+    } catch (e) {
+      console.error('Error finding matching tabs for warnings', e);
+      return [];
     }
   }
 
-  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === "closeTabs") {
-      closeTabs();
+  async function highlightMatchingTabs() {
+    try {
+      await clearHighlightedTabs();
+      const matchingTabs = await getMatchingTabs();
+      const tabIds = matchingTabs.map(tab => tab.id).filter(id => typeof id === 'number');
+      highlightedTabIds = tabIds;
+
+      for (const id of tabIds) {
+        chrome.tabs.sendMessage(id, { action: "setTabWarning", enabled: true });
+      }
+    } catch (e) {
+      console.error('Error highlighting matching tabs', e);
     }
-  });
+  }
+
+  async function clearHighlightedTabs() {
+    try {
+      const ids = highlightedTabIds || [];
+      highlightedTabIds = [];
+      for (const id of ids) {
+        chrome.tabs.sendMessage(id, { action: "setTabWarning", enabled: false });
+      }
+    } catch (e) {
+      console.error('Error clearing highlighted tabs', e);
+    }
+  }
 
   // Call updateCounts initially and whenever URLs are loaded or tabs might change
   loadUrls();
@@ -340,4 +420,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (popupTimestamp) {
     popupTimestamp.textContent = new Date().toLocaleString();
   }
+
+  window.addEventListener('beforeunload', () => {
+    clearHighlightedTabs();
+  });
 });

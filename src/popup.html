@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Auto-close tabs</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
    <style>
@@ -12,12 +13,16 @@
   </style>
 </head>
 <body class="p-4 bg-gray-100">
-    <button id="closeTabs" class="bg-blue-500 text-white py-2 px-4 rounded mb-2 w-full">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
+    <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="bg-blue-500 text-white py-2 px-4 rounded mb-2 w-full">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
+    <label class="flex items-center gap-2 text-sm text-gray-700 mb-3" title="When any close action runs, close all but one duplicate tab (by URL)">
+      <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />
+      <span>Always close dupes</span>
+    </label>
     <br>
-    <button id="addCurrentUrl" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
-    <button id="addAllTabs" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
+    <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
+    <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
 
-    <a href="#" id="toggleList" class="text-gray-700 block mb-2">
+    <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 block mb-2">
         <span class="toggle-indicator transform transition-transform duration-200">&#9654;</span> Your list 
         <span id="listCount" class="text-xs bg-gray-200 text-gray-700 rounded-full px-2">(0)</span>
     </a>
