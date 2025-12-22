@@ -79,8 +79,14 @@ document.addEventListener('DOMContentLoaded', function() {
     await addCurrentTabUrl();
     await highlightMatchingTabs();
     if (isOptionPressed) {
-      await chrome.runtime.sendMessage({ action: "closeTabs" });
-      await clearHighlightedTabs();
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab && typeof tab.id === 'number') {
+          await chrome.tabs.remove(tab.id);
+        }
+      } catch (e) {
+        console.error('Error closing current tab:', e);
+      }
     }
   });
 
@@ -382,15 +388,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function normalizeUrlForDupeCheck(url) {
+    try {
+      const parsed = new URL(String(url || ''));
+      const hostname = parsed.hostname.toLowerCase();
+      const pathname = parsed.pathname.replace(/\/+$/, '');
+      const search = parsed.search;
+      return hostname + pathname + search;
+    } catch (e) {
+      return String(url || '')
+        .replace(/^https?:\/\//i, '')
+        .replace(/\/+$/, '')
+        .toLowerCase();
+    }
+  }
+
+  function getDupeTabIdsToClose(tabs) {
+    const seen = new Set();
+    const tabIdsToClose = [];
+
+    for (const tab of tabs) {
+      if (!tab || typeof tab.id !== 'number' || !tab.url) {
+        continue;
+      }
+      const key = normalizeUrlForDupeCheck(tab.url);
+      if (!key) {
+        continue;
+      }
+      if (seen.has(key)) {
+        tabIdsToClose.push(tab.id);
+        continue;
+      }
+      seen.add(key);
+    }
+
+    return tabIdsToClose;
+  }
+
   async function highlightMatchingTabs() {
     try {
       await clearHighlightedTabs();
       const matchingTabs = await getMatchingTabs();
-      const tabIds = matchingTabs.map(tab => tab.id).filter(id => typeof id === 'number');
-      highlightedTabIds = tabIds;
+      const safeMatchTabIds = new Set(matchingTabs.map(tab => tab.id).filter(id => typeof id === 'number'));
 
-      for (const id of tabIds) {
-        chrome.tabs.sendMessage(id, { action: "setTabWarning", enabled: true });
+      const result = await chrome.storage.sync.get(['alwaysCloseDupes']);
+      const alwaysCloseDupes = Boolean(result.alwaysCloseDupes);
+
+      const dupeOnlyTabIds = new Set();
+      if (alwaysCloseDupes) {
+        const allTabs = await chrome.tabs.query({});
+        const dupeTabIdsToClose = getDupeTabIdsToClose(allTabs);
+        for (const id of dupeTabIdsToClose) {
+          if (!safeMatchTabIds.has(id)) {
+            dupeOnlyTabIds.add(id);
+          }
+        }
+      }
+
+      const allHighlightedIds = Array.from(new Set([...safeMatchTabIds, ...dupeOnlyTabIds]));
+      highlightedTabIds = allHighlightedIds;
+
+      for (const id of safeMatchTabIds) {
+        chrome.tabs.sendMessage(id, { action: "setTabWarning", enabled: true, level: 1 });
+      }
+
+      for (const id of dupeOnlyTabIds) {
+        chrome.tabs.sendMessage(id, { action: "setTabWarning", enabled: true, level: 2 });
       }
     } catch (e) {
       console.error('Error highlighting matching tabs', e);

@@ -4,19 +4,27 @@
 let tabWarningOriginalTitle = document.title;
 let tabWarningActive = false;
 
-function applyTabWarning() {
-  if (tabWarningActive) return;
-  tabWarningOriginalTitle = document.title;
-  if (!tabWarningOriginalTitle.startsWith("🔴 ")) {
-    document.title = "🔴 " + tabWarningOriginalTitle;
-  }
+function stripTabWarningPrefix(title) {
+  return String(title || '').replace(/^(🔴\s*){1,2}/, '');
+}
+
+function getTabWarningPrefix(level) {
+  if (level === 2) return '🔴🔴 ';
+  if (level === 1) return '🔴 ';
+  return '';
+}
+
+function applyTabWarning(level) {
+  const warningLevel = level === 2 ? 2 : 1;
+  tabWarningOriginalTitle = stripTabWarningPrefix(document.title);
+  document.title = getTabWarningPrefix(warningLevel) + tabWarningOriginalTitle;
   tabWarningActive = true;
 }
 
 function removeTabWarning() {
-  if (!tabWarningActive && !document.title.startsWith("🔴 ")) return;
+  if (!tabWarningActive && !document.title.startsWith("🔴")) return;
   const current = document.title;
-  const cleaned = current.replace(/^🔴\s*/, "");
+  const cleaned = stripTabWarningPrefix(current);
   document.title = cleaned || tabWarningOriginalTitle;
   tabWarningActive = false;
 }
@@ -25,10 +33,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (!request || !request.action) return;
 
   if (request.action === "setTabWarning") {
-    if (request.enabled) {
-      applyTabWarning();
-    } else {
-      removeTabWarning();
+    const requestedLevel = typeof request.level === 'number' ? request.level : (request.enabled ? 1 : 0);
+    if (requestedLevel >= 1) {
+      applyTabWarning(requestedLevel);
+      return;
     }
+    removeTabWarning();
   }
 });
