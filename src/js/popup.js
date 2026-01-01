@@ -181,30 +181,35 @@ document.addEventListener('DOMContentLoaded', function() {
       .replace(/'/g, '&#39;');
   }
 
+  function parseUrlParts(urlStr) {
+    let hostname;
+    let pathname;
+    try {
+      const parsed = new URL(urlStr);
+      hostname = parsed.hostname;
+      pathname = parsed.pathname + parsed.search;
+    } catch (e) {
+      const withoutProto = urlStr.replace(/^https?:\/\//, '');
+      const parts = withoutProto.split('/');
+      hostname = parts[0] || urlStr;
+      const rest = parts.slice(1).join('/');
+      pathname = rest ? '/' + rest : '';
+    }
+    return {
+      hostname,
+      displayPath: pathname || '/'
+    };
+  }
+
   // Format URL for display with open indicator (favicon is shown at domain level)
   async function formatUrlDisplay(urlStr, isOpen) {
     try {
-      let hostname;
-      let pathname;
-
-      try {
-        const parsed = new URL(urlStr);
-        hostname = parsed.hostname;
-        pathname = parsed.pathname + parsed.search;
-      } catch (e) {
-        const withoutProto = urlStr.replace(/^https?:\/\//, '');
-        const parts = withoutProto.split('/');
-        hostname = parts[0] || urlStr;
-        const rest = parts.slice(1).join('/');
-        pathname = rest ? '/' + rest : '';
-      }
-
-      const displayUrl = pathname || '/';
+      const { displayPath } = parseUrlParts(urlStr);
       const openTag = isOpen ? '<span class="open-tag">🔴</span>' : '<span class="open-tag"></span>';
 
       return `
         <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
-          <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(urlStr)}" title="${escapeHtml(urlStr)}">${displayUrl}</span>
+          <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(urlStr)}" title="${escapeHtml(urlStr)}">${displayPath}</span>
           <span class="flex-none w-4 text-center">${openTag}</span>
           <button class="delete-btn flex-none text-gray-500 hover:text-red-600 px-1" data-url="${urlStr}" title="Remove this pattern"><img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" /></button>
         </div>
@@ -272,6 +277,65 @@ document.addEventListener('DOMContentLoaded', function() {
       urlList.innerHTML = '';
 
       for (const group of domainGroups) {
+        if (group.items.length === 1) {
+          const singleItem = group.items[0];
+          const { displayPath } = parseUrlParts(singleItem.url);
+          const fullDisplay = `${group.domain || ''}${displayPath}`;
+
+          const combinedLi = document.createElement('li');
+          combinedLi.className = 'flex items-center gap-2 mt-3 mb-0 px-1';
+
+          const inlineFavicon = document.createElement('img');
+          inlineFavicon.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(group.domain)}&sz=16`;
+          inlineFavicon.alt = '';
+          inlineFavicon.className = 'w-4 h-4 flex-none';
+          inlineFavicon.title = group.domain;
+
+          const urlContainer = document.createElement('div');
+          urlContainer.className = 'url-item flex items-center gap-2 flex-1 pr-2 py-1.5';
+
+          const urlSpan = document.createElement('span');
+          urlSpan.className = 'url-text flex-1 truncate whitespace-nowrap';
+          urlSpan.setAttribute('role', 'button');
+          urlSpan.setAttribute('tabindex', '0');
+          urlSpan.dataset.url = singleItem.url;
+          urlSpan.textContent = fullDisplay;
+          urlSpan.title = fullDisplay;
+
+          const openTagSpan = document.createElement('span');
+          openTagSpan.className = 'flex-none w-4 text-center open-tag';
+          openTagSpan.textContent = singleItem.isOpen ? '🔴' : '';
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn flex-none text-gray-500 hover:text-red-600 px-1';
+          deleteBtn.dataset.url = singleItem.url;
+          deleteBtn.title = 'Remove this pattern';
+          const deleteImg = document.createElement('img');
+          deleteImg.src = 'icons/bin-darker.svg';
+          deleteImg.alt = 'Remove';
+          deleteImg.className = 'w-4 h-4 mx-auto';
+          deleteBtn.appendChild(deleteImg);
+
+          urlContainer.appendChild(urlSpan);
+          urlContainer.appendChild(openTagSpan);
+          urlContainer.appendChild(deleteBtn);
+
+          combinedLi.appendChild(inlineFavicon);
+          combinedLi.appendChild(urlContainer);
+          urlList.appendChild(combinedLi);
+
+          const handleOpen = () => openUrlInNewTab(singleItem.url);
+          urlSpan.addEventListener('click', handleOpen);
+          urlSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleOpen();
+            }
+          });
+          deleteBtn.addEventListener('click', () => deleteUrl(singleItem.url));
+          continue;
+        }
+
         // Domain header
         const headerLi = document.createElement('li');
         headerLi.className = 'flex items-center gap-2 text-[11px] text-gray-500 mt-3 mb-0 px-1';
@@ -562,7 +626,14 @@ document.addEventListener('DOMContentLoaded', function() {
     await highlightMatchingTabs();
   };
   
-  chrome.tabs.onUpdated.addListener(updateTabListeners);
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (!changeInfo) {
+      return;
+    }
+    if (typeof changeInfo.url === 'string' || changeInfo.status === 'complete') {
+      updateTabListeners();
+    }
+  });
   chrome.tabs.onRemoved.addListener(updateTabListeners);
   chrome.tabs.onCreated.addListener(updateTabListeners);
 
