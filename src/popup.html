@@ -6,20 +6,26 @@
   <title>Auto-close tabs</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
+    :root {
+      --popup-expanded-height: 600px;
+      --popup-collapsed-height: 260px;
+    }
+
     html,
     body {
       width: 480px;
       min-width: 480px;
-      max-height: 600px;
-      height: 600px;
+      max-height: var(--popup-expanded-height);
+      height: var(--popup-expanded-height);
       transition: height 0.2s ease;
+      overflow-x: hidden;
     }
 
     html.list-collapsed,
     html.list-collapsed body,
     body.list-collapsed {
-      max-height: 360px;
-      height: 360px;
+      max-height: var(--popup-collapsed-height);
+      height: var(--popup-collapsed-height);
       transition: height 0.2s ease;
     }
 
@@ -45,6 +51,19 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .url-item {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .url-text {
+      display: inline-flex;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 </head>
@@ -61,8 +80,8 @@
           </div>
         </div>
         <div class="flex flex-col gap-3">
-          <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded font-semibold hover:bg-gray-300 transition">
-            <span id="closeTabsText">Close 0 matching tabs</span>
+          <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded font-semibold hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <span id="closeTabsText">No tabs to close</span>
           </button>
           <label class="flex items-center gap-2 text-sm text-gray-900" title="When any close action runs, close all but one duplicate tab (by URL)">
             <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />

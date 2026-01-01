@@ -54,9 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
     indicator.innerHTML = isOpen ? '&#9660;' : '&#9654;';
     chrome.storage.sync.set({ listToggleState: isOpen });
     setListCollapsedState(isOpen);
-    if (isOpen) {
-      urlListSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   });
 
   // Handle option/alt key state
@@ -467,14 +464,21 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.url && safeUrls.some(url => matchesUrlPattern(tab.url, String(url || '')))
       ).length;
 
-      if (closeTabsText) {
-        const plural = matchingTabsCount === 1 ? '' : 's';
-        closeTabsText.textContent = `Close ${matchingTabsCount} matching tab${plural}`;
+      if (closeTabsButton && closeTabsText) {
+        if (matchingTabsCount > 0) {
+          const plural = matchingTabsCount === 1 ? '' : 's';
+          closeTabsText.textContent = `Close ${matchingTabsCount} matching tab${plural}`;
+          closeTabsButton.disabled = false;
+        } else {
+          closeTabsText.textContent = 'No tabs to close';
+          closeTabsButton.disabled = true;
+        }
       }
     } catch (error) {
       console.error('Error counting matching tabs:', error);
-      if (closeTabsText) {
-        closeTabsText.textContent = 'Close 0 matching tabs';
+      if (closeTabsButton && closeTabsText) {
+        closeTabsText.textContent = 'No tabs to close';
+        closeTabsButton.disabled = true;
       }
     }
   }
