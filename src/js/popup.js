@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
       addCurrentUrlButton.textContent = 'Add tab to list and close';
       addAllTabsButton.textContent = 'Add all tabs to list and close';
       addCurrentUrlButton.style.display = 'block';
-      copyListButton.classList.remove('hidden');
     }
   });
 
@@ -67,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
       addCurrentUrlButton.textContent = 'Add tab to list';
       addAllTabsButton.textContent = 'Add all tabs to list';
       addCurrentUrlButton.style.display = 'block';
-      copyListButton.classList.add('hidden');
     }
   });
 
@@ -169,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
         urls.unshift(url);
         await chrome.storage.sync.set({ safeUrls: urls });
         loadUrls();
-        updateListCount();
         updateMatchingTabsCount();
         await highlightMatchingTabs();
       }
@@ -327,15 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      updateListCount();
       updateMatchingTabsCount();
-    });
-  }
-
-  function updateListCount() {
-    chrome.storage.sync.get(['safeUrls'], function(result) {
-      const urls = result.safeUrls || [];
-      document.getElementById('listCount').textContent = `${urls.length}`;
     });
   }
 
@@ -400,7 +389,6 @@ document.addEventListener('DOMContentLoaded', function() {
         urls.splice(index, 1);
         await chrome.storage.sync.set({ safeUrls: urls });
         loadUrls();
-        updateListCount();
         updateMatchingTabsCount();
         await highlightMatchingTabs();
       }
@@ -526,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize the extension
   async function initialize() {
     await loadUrls();
-    updateListCount();
     await updateMatchingTabsCount();
     await highlightMatchingTabs();
   }

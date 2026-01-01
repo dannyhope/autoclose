@@ -24,19 +24,20 @@
         <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="flex-1 bg-green-500 text-white py-3 px-4 rounded text-base font-semibold hidden">Add all tabs to list</button>
     </div>
 
-    <div class="flex items-center justify-between gap-2 mb-2">
-        <div class="flex items-center gap-2">
-            <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 flex items-center gap-2">
-                <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span> 
+    <div class="mb-2">
+        <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 flex items-start gap-2">
+            <span class="toggle-indicator transform transition-transform duration-200 mt-0.5">&#9660;</span> 
+            <span class="flex flex-col leading-tight">
                 <span>Safe to close websites</span>
-                <span id="listCount" class="text-xs bg-gray-200 text-gray-700 rounded-full px-2">(0)</span>
-            </a>
-            <span id="buildDate" class="text-xs text-gray-500" title="Extension version and build time"></span>
-        </div>
-        <button id="copyList" title="Copy your list to clipboard" class="bg-gray-200 text-gray-800 py-1 px-2 rounded text-xs hidden">Copy list</button>
+                <span id="buildDate" class="text-xs text-gray-500" title="Extension version and build time"></span>
+            </span>
+        </a>
     </div>
     
-    <div id="urlListSection" class="hidden">
+    <div id="urlListSection" class="hidden mt-2">
+      <div class="flex justify-end mb-2">
+        <button id="copyList" title="Copy your list to clipboard" class="bg-gray-200 text-gray-800 py-1 px-3 rounded text-xs">Copy list</button>
+      </div>
       <ul id="urlList" class="list-none p-0"></ul>
     </div>
 
