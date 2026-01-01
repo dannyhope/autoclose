@@ -20,18 +20,18 @@
     </label>
     <br>
     <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
-    <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
+    <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full hidden">Add all tabs to list</button>
 
-    <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 block mb-2">
-        <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span> Your list 
-        <span id="listCount" class="text-xs bg-gray-200 text-gray-700 rounded-full px-2">(0)</span>
-    </a>
+    <div class="flex items-center gap-2 mb-2">
+        <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700">
+            <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span> Safe to close websites
+            <span id="listCount" class="text-xs bg-gray-200 text-gray-700 rounded-full px-2">(0)</span>
+        </a>
+        <button id="copyList" title="Copy your list to clipboard" class="bg-gray-200 text-gray-800 py-1 px-2 rounded text-xs hidden">Copy list</button>
+    </div>
     
     <div id="urlListSection" class="hidden">
-      <div class="flex justify-between items-center mb-2">
-        <button id="downloadUrlList" title="Download your saved list of patterns as a .txt file" class="bg-gray-200 text-gray-800 py-1 px-3 rounded text-sm">
-          Download list
-        </button>
+      <div class="flex justify-end items-center mb-2">
         <div class="text-xs text-gray-500" id="buildDate"></div>
       </div>
       <ul id="urlList" class="list-none p-0"></ul>

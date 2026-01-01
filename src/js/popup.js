@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const addAllTabsButton = document.getElementById('addAllTabs');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
-  const downloadUrlListButton = document.getElementById('downloadUrlList');
+  const copyListButton = document.getElementById('copyList');
   const alwaysCloseDupesCheckbox = document.getElementById('alwaysCloseDupes');
   const toggleListLink = document.getElementById('toggleList');
   const urlListSection = document.getElementById('urlListSection');
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
       addCurrentUrlButton.textContent = 'Add tab to list and close';
       addAllTabsButton.textContent = 'Add all tabs to list and close';
       addCurrentUrlButton.style.display = 'block';
-      addAllTabsButton.style.display = 'block';
+      copyListButton.classList.remove('hidden');
     }
   });
 
@@ -67,13 +67,12 @@ document.addEventListener('DOMContentLoaded', function() {
       addCurrentUrlButton.textContent = 'Add tab to list';
       addAllTabsButton.textContent = 'Add all tabs to list';
       addCurrentUrlButton.style.display = 'block';
-      addAllTabsButton.style.display = 'block';
+      copyListButton.classList.add('hidden');
     }
   });
 
   // Ensure buttons are visible by default
   addCurrentUrlButton.style.display = 'block';
-  addAllTabsButton.style.display = 'block';
 
   // Add current tab URL with optional close
   addCurrentUrlButton.addEventListener('click', async function() {
@@ -118,29 +117,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  if (downloadUrlListButton) {
-    downloadUrlListButton.addEventListener('click', async function() {
+  if (copyListButton) {
+    copyListButton.addEventListener('click', async function() {
       try {
         const result = await chrome.storage.sync.get(['safeUrls']);
         const urls = result.safeUrls || [];
-        const fileContents = urls.map(u => String(u)).join('\n') + (urls.length ? '\n' : '');
-
-        const datePart = new Date().toISOString().slice(0, 10);
-        const fileName = `autoclose-url-list-${datePart}.txt`;
-
-        const blob = new Blob([fileContents], { type: 'text/plain;charset=utf-8' });
-        const objectUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        URL.revokeObjectURL(objectUrl);
+        const textToCopy = urls.map(u => String(u)).join('\n');
+        await navigator.clipboard.writeText(textToCopy);
+        const originalText = copyListButton.textContent;
+        copyListButton.textContent = 'Copied!';
+        setTimeout(() => {
+          copyListButton.textContent = originalText;
+        }, 1500);
       } catch (error) {
-        console.error('Error downloading URL list:', error);
+        console.error('Error copying URL list:', error);
       }
     });
   }
