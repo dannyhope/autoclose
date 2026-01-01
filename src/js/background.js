@@ -44,6 +44,35 @@ function getDupeTabIdsToClose(tabs) {
   return tabIdsToClose;
 }
 
+function matchesUrlPattern(url, pattern) {
+  try {
+    if (!/^https?:\/\//i.test(pattern)) {
+      if (pattern.startsWith('/')) {
+        const urlObj = new URL(url);
+        return urlObj.pathname + urlObj.search === pattern;
+      }
+      return url.endsWith(pattern);
+    }
+
+    const patternUrl = new URL(pattern);
+    const testUrl = new URL(url);
+
+    if (patternUrl.protocol !== testUrl.protocol ||
+        patternUrl.hostname !== testUrl.hostname ||
+        patternUrl.port !== testUrl.port) {
+      return false;
+    }
+
+    if (pattern.endsWith('$')) {
+      return testUrl.pathname + testUrl.search === patternUrl.pathname + patternUrl.search;
+    }
+    return (testUrl.pathname + testUrl.search).startsWith(patternUrl.pathname + patternUrl.search);
+  } catch (e) {
+    console.error('Error matching URL pattern:', e);
+    return false;
+  }
+}
+
 async function handleCloseTabs() {
   try {
     const result = await chrome.storage.sync.get(['safeUrls', 'alwaysCloseDupes']);
@@ -64,8 +93,7 @@ async function handleCloseTabs() {
       if (!tab || typeof tab.id !== 'number' || !tab.url) {
         return false;
       }
-      const tabUrlLower = tab.url.toLowerCase();
-      return safeUrls.some(url => tabUrlLower.includes(String(url || '').toLowerCase()));
+      return safeUrls.some(url => matchesUrlPattern(tab.url, String(url || '')));
     });
 
     for (const tab of tabsMatchingSafeUrls) {
