@@ -4,13 +4,20 @@ document.addEventListener('DOMContentLoaded', function() {
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
   const closeTabsText = document.getElementById('closeTabsText');
-  const copyListButton = document.getElementById('copyList');
   const alwaysCloseDupesCheckbox = document.getElementById('alwaysCloseDupes');
   const toggleListLink = document.getElementById('toggleList');
   const urlListSection = document.getElementById('urlListSection');
-  const popupTimestamp = document.getElementById('popupTimestamp');
 
   let highlightedTabIds = [];
+
+  function setListCollapsedState(isListOpen) {
+    const shouldCollapse = !isListOpen;
+    document.documentElement.classList.toggle('list-collapsed', shouldCollapse);
+    document.body.classList.toggle('list-collapsed', shouldCollapse);
+  }
+
+  // Default to collapsed height while list is hidden initially
+  setListCollapsedState(false);
 
   // Load saved URLs
   loadUrls();
@@ -21,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const isOpen = result.listToggleState || false;
     urlListSection.classList.toggle('hidden', !isOpen);
     toggleListLink.querySelector('.toggle-indicator').innerHTML = isOpen ? '&#9660;' : '&#9654;';
+    setListCollapsedState(isOpen);
   });
 
   // Restore "Always close dupes" state
@@ -45,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const isOpen = !urlListSection.classList.contains('hidden');
     indicator.innerHTML = isOpen ? '&#9660;' : '&#9654;';
     chrome.storage.sync.set({ listToggleState: isOpen });
+    setListCollapsedState(isOpen);
     if (isOpen) {
       urlListSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -115,24 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Error adding all tabs:', error);
     }
   });
-
-  if (copyListButton) {
-    copyListButton.addEventListener('click', async function() {
-      try {
-        const result = await chrome.storage.sync.get(['safeUrls']);
-        const urls = result.safeUrls || [];
-        const textToCopy = urls.map(u => String(u)).join('\n');
-        await navigator.clipboard.writeText(textToCopy);
-        const originalText = copyListButton.textContent;
-        copyListButton.textContent = 'Copied!';
-        setTimeout(() => {
-          copyListButton.textContent = originalText;
-        }, 1500);
-      } catch (error) {
-        console.error('Error copying URL list:', error);
-      }
-    });
-  }
 
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {
@@ -325,8 +316,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
+      appendCopyListButton();
       updateMatchingTabsCount();
     });
+  }
+
+  async function handleCopyListClick(event) {
+    const button = event.currentTarget;
+    try {
+      const result = await chrome.storage.sync.get(['safeUrls']);
+      const urls = result.safeUrls || [];
+      const textToCopy = urls.map(u => String(u)).join('\n');
+      await navigator.clipboard.writeText(textToCopy);
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      setTimeout(() => {
+        button.textContent = originalText;
+      }, 1500);
+    } catch (error) {
+      console.error('Error copying URL list:', error);
+    }
+  }
+
+  function appendCopyListButton() {
+    if (!urlList) {
+      return;
+    }
+    let container = document.getElementById('copyListContainer');
+    if (!container) {
+      container = document.createElement('li');
+      container.id = 'copyListContainer';
+      container.className = 'flex justify-end pt-2';
+      const button = document.createElement('button');
+      button.id = 'copyList';
+      button.title = 'Copy your list to clipboard';
+      button.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
+      button.textContent = 'Copy list';
+      button.addEventListener('click', handleCopyListClick);
+      container.appendChild(button);
+    }
+    urlList.appendChild(container);
   }
 
   function matchesUrlPattern(url, pattern) {
@@ -537,28 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chrome.tabs.onRemoved.addListener(updateTabListeners);
   chrome.tabs.onCreated.addListener(updateTabListeners);
 
-  // Set popup timestamp to current time
-  if (popupTimestamp) {
-    popupTimestamp.textContent = new Date().toLocaleString();
-  }
   
-  // Set build date in the list section (using extension's install time)
-  const buildDateElement = document.getElementById('buildDate');
-  if (buildDateElement) {
-    // Get extension's install/update time from manifest
-    const manifestData = chrome.runtime.getManifest();
-    const installTime = new Date(manifestData.installTime || Date.now());
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true
-    };
-    buildDateElement.textContent = `v${manifestData.version} • ${installTime.toLocaleString(undefined, options)}`;
-  }
-
   // Clear highlights when popup is closed
   window.addEventListener('beforeunload', clearHighlightedTabs);
   
