@@ -12,31 +12,30 @@
     }
   </style>
 </head>
-<body class="p-4 bg-gray-100">
-    <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="bg-blue-500 text-white py-2 px-4 rounded mb-2 w-full">Close matching tabs <span id="matchingTabsCount" class="text-xs bg-gray-200 text-blue-500 rounded-full px-2">(0)</span></button>
-    <label class="flex items-center gap-2 text-sm text-gray-700 mb-3" title="When any close action runs, close all but one duplicate tab (by URL)">
+<body class="p-4 bg-gray-100 text-sm text-gray-900">
+    <div class="flex gap-3 mb-3">
+      <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="flex-1 bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded font-semibold hover:bg-gray-300 transition">
+        <span id="closeTabsText">Close 0 matching tabs</span>
+      </button>
+      <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="flex-1 bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded text-sm font-semibold hover:bg-gray-300 transition">Add tab to list</button>
+    </div>
+    <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-gray-200 text-gray-900 border border-gray-300 py-2 px-4 rounded text-sm font-semibold mb-3 hidden hover:bg-gray-300 transition">Add all tabs to list</button>
+    <label class="flex items-center gap-2 text-sm text-gray-900 mb-3" title="When any close action runs, close all but one duplicate tab (by URL)">
       <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />
       <span>Always close dupes</span>
     </label>
-    <br>
-    <div class="flex gap-3 mb-4">
-        <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="flex-1 bg-green-500 text-white py-3 px-4 rounded text-base font-semibold">Add tab to list</button>
-        <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="flex-1 bg-green-500 text-white py-3 px-4 rounded text-base font-semibold hidden">Add all tabs to list</button>
-    </div>
 
     <div class="mb-2">
-        <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 flex items-start gap-2">
+        <a href="#" id="toggleList" title="Show/hide your list" class="flex items-start gap-2">
             <span class="toggle-indicator transform transition-transform duration-200 mt-0.5">&#9660;</span> 
-            <span class="flex flex-col leading-tight">
-                <span>Safe to close websites</span>
-                <span id="buildDate" class="text-xs text-gray-500" title="Extension version and build time"></span>
-            </span>
+            <span class="leading-tight whitespace-nowrap">Safe to close websites</span>
         </a>
     </div>
     
     <div id="urlListSection" class="hidden mt-2">
+      <p id="buildDate" class="mb-2" title="Extension version and build time"></p>
       <div class="flex justify-end mb-2">
-        <button id="copyList" title="Copy your list to clipboard" class="bg-gray-200 text-gray-800 py-1 px-3 rounded text-xs">Copy list</button>
+        <button id="copyList" title="Copy your list to clipboard" class="bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition">Copy list</button>
       </div>
       <ul id="urlList" class="list-none p-0"></ul>
     </div>

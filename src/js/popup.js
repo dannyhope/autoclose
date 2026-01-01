@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const addAllTabsButton = document.getElementById('addAllTabs');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
+  const closeTabsText = document.getElementById('closeTabsText');
   const copyListButton = document.getElementById('copyList');
   const alwaysCloseDupesCheckbox = document.getElementById('alwaysCloseDupes');
   const toggleListLink = document.getElementById('toggleList');
@@ -373,10 +374,15 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.url && safeUrls.some(url => matchesUrlPattern(tab.url, String(url || '')))
       ).length;
 
-      document.getElementById('matchingTabsCount').textContent = `${matchingTabsCount}`;
+      if (closeTabsText) {
+        const plural = matchingTabsCount === 1 ? '' : 's';
+        closeTabsText.textContent = `Close ${matchingTabsCount} matching tab${plural}`;
+      }
     } catch (error) {
       console.error('Error counting matching tabs:', error);
-      document.getElementById('matchingTabsCount').textContent = '0';
+      if (closeTabsText) {
+        closeTabsText.textContent = 'Close 0 matching tabs';
+      }
     }
   }
 
