@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const addAllTabsButton = document.getElementById('addAllTabs');
   const urlList = document.getElementById('urlList');
   const closeTabsButton = document.getElementById('closeTabs');
+  const downloadUrlListButton = document.getElementById('downloadUrlList');
   const alwaysCloseDupesCheckbox = document.getElementById('alwaysCloseDupes');
   const toggleListLink = document.getElementById('toggleList');
   const urlListSection = document.getElementById('urlListSection');
@@ -116,6 +117,33 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Error adding all tabs:', error);
     }
   });
+
+  if (downloadUrlListButton) {
+    downloadUrlListButton.addEventListener('click', async function() {
+      try {
+        const result = await chrome.storage.sync.get(['safeUrls']);
+        const urls = result.safeUrls || [];
+        const fileContents = urls.map(u => String(u)).join('\n') + (urls.length ? '\n' : '');
+
+        const datePart = new Date().toISOString().slice(0, 10);
+        const fileName = `autoclose-url-list-${datePart}.txt`;
+
+        const blob = new Blob([fileContents], { type: 'text/plain;charset=utf-8' });
+        const objectUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        console.error('Error downloading URL list:', error);
+      }
+    });
+  }
 
   // Close matching tabs
   closeTabsButton.addEventListener('click', async function() {
