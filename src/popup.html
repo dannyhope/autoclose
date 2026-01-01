@@ -13,24 +13,28 @@
   </style>
 </head>
 <body class="p-4 bg-gray-100 text-sm text-gray-900">
-    <div class="flex gap-3 mb-3">
-      <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="flex-1 bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded text-sm font-semibold hover:bg-gray-300 transition">Add tab to list</button>
-      <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="flex-1 bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded font-semibold hover:bg-gray-300 transition">
-        <span id="closeTabsText">Close 0 matching tabs</span>
-      </button>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div class="flex flex-col gap-3">
+        <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded text-sm font-semibold hover:bg-gray-300 transition">Add tab to list</button>
+        <div>
+          <a href="#" id="toggleList" title="Show/hide your list" class="flex items-center gap-2">
+            <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span>
+            <span class="leading-tight whitespace-nowrap">Safe to close websites</span>
+          </a>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3">
+        <button id="closeTabs" title="Close all tabs that match any pattern in your list" class="bg-gray-200 text-gray-900 border border-gray-300 py-3 px-4 rounded font-semibold hover:bg-gray-300 transition">
+          <span id="closeTabsText">Close 0 matching tabs</span>
+        </button>
+        <label class="flex items-center gap-2 text-sm text-gray-900" title="When any close action runs, close all but one duplicate tab (by URL)">
+          <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />
+          <span>Always close dupes</span>
+        </label>
+      </div>
     </div>
     <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-gray-200 text-gray-900 border border-gray-300 py-2 px-4 rounded text-sm font-semibold mb-3 hidden hover:bg-gray-300 transition">Add all tabs to list</button>
-    <label class="flex items-center gap-2 text-sm text-gray-900 mb-3" title="When any close action runs, close all but one duplicate tab (by URL)">
-      <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />
-      <span>Always close dupes</span>
-    </label>
 
-    <div class="mb-2">
-        <a href="#" id="toggleList" title="Show/hide your list" class="flex items-center gap-2">
-            <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span> 
-            <span class="leading-tight whitespace-nowrap">Safe to close websites</span>
-        </a>
-    </div>
     
     <div id="urlListSection" class="hidden mt-2">
       <p id="buildDate" class="mb-2" title="Extension version and build time"></p>
