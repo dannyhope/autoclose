@@ -22,14 +22,18 @@
     <button id="addCurrentUrl" title="Add the active tab to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add tab to list</button>
     <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-green-500 text-white py-2 px-4 rounded mb-2 w-full">Add all tabs to list</button>
 
-    <button id="downloadUrlList" title="Download your saved list of patterns as a .txt file" class="bg-gray-200 text-gray-800 py-2 px-4 rounded mb-2 w-full">Download the list of URLs</button>
-
     <a href="#" id="toggleList" title="Show/hide your list" class="text-gray-700 block mb-2">
-        <span class="toggle-indicator transform transition-transform duration-200">&#9654;</span> Your list 
+        <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span> Your list 
         <span id="listCount" class="text-xs bg-gray-200 text-gray-700 rounded-full px-2">(0)</span>
     </a>
     
     <div id="urlListSection" class="hidden">
+      <div class="flex justify-between items-center mb-2">
+        <button id="downloadUrlList" title="Download your saved list of patterns as a .txt file" class="bg-gray-200 text-gray-800 py-1 px-3 rounded text-sm">
+          Download list
+        </button>
+        <div class="text-xs text-gray-500" id="buildDate"></div>
+      </div>
       <ul id="urlList" class="list-none p-0"></ul>
     </div>
 

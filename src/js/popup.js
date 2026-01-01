@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Build flat list with open state
       const items = sortedUrls.map(url => {
-        const isOpen = tabs.some(tab => tab.url && tab.url.toLowerCase().includes(String(url).toLowerCase()));
+        const isOpen = tabs.some(tab => tab.url && matchesUrlPattern(tab.url, String(url)));
         return { url, isOpen };
       });
 
@@ -349,6 +349,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function matchesUrlPattern(url, pattern) {
+    try {
+      // If pattern doesn't start with http, assume it's a path/query pattern
+      if (!/^https?:\/\//i.test(pattern)) {
+        // If pattern starts with /, it should be an exact path match
+        if (pattern.startsWith('/')) {
+          const urlObj = new URL(url);
+          return urlObj.pathname + urlObj.search === pattern;
+        }
+        // Otherwise, it should match the end of the URL
+        return url.endsWith(pattern);
+      }
+
+      // For full URLs, do a complete match
+      const patternUrl = new URL(pattern);
+      const testUrl = new URL(url);
+
+      // Compare protocol, hostname, and port
+      if (patternUrl.protocol !== testUrl.protocol ||
+          patternUrl.hostname !== testUrl.hostname ||
+          patternUrl.port !== testUrl.port) {
+        return false;
+      }
+
+      // For paths, do exact match if pattern ends with $, otherwise prefix match
+      if (pattern.endsWith('$')) {
+        return testUrl.pathname + testUrl.search === patternUrl.pathname + patternUrl.search;
+      }
+      return (testUrl.pathname + testUrl.search).startsWith(patternUrl.pathname + patternUrl.search);
+    } catch (e) {
+      console.error('Error matching URL pattern:', e);
+      return false;
+    }
+  }
+
   async function updateMatchingTabsCount() {
     try {
       const result = await chrome.storage.sync.get(['safeUrls']);
@@ -356,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const tabs = await chrome.tabs.query({});
       const matchingTabsCount = tabs.filter(tab => 
-        safeUrls.some(url => tab.url.toLowerCase().includes(url.toLowerCase()))
+        tab.url && safeUrls.some(url => matchesUrlPattern(tab.url, String(url || '')))
       ).length;
 
       document.getElementById('matchingTabsCount').textContent = `${matchingTabsCount}`;
@@ -405,11 +440,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const tabs = await chrome.tabs.query({});
-      return tabs.filter(tab => {
-        if (!tab.url) return false;
-        const urlLower = tab.url.toLowerCase();
-        return safeUrls.some(safeUrl => urlLower.includes(String(safeUrl).toLowerCase()));
-      });
+      return tabs.filter(tab => 
+        tab.url && safeUrls.some(url => matchesUrlPattern(tab.url, String(url || '')))
+      );
     } catch (e) {
       console.error('Error finding matching tabs for warnings', e);
       return [];
@@ -500,19 +533,62 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Call updateCounts initially and whenever URLs are loaded or tabs might change
-  loadUrls();
-  updateListCount();
-  updateMatchingTabsCount();
-  chrome.tabs.onUpdated.addListener(updateMatchingTabsCount);
-  chrome.tabs.onRemoved.addListener(updateMatchingTabsCount);
-  chrome.tabs.onCreated.addListener(updateMatchingTabsCount);
+  // Initialize the extension
+  async function initialize() {
+    await loadUrls();
+    updateListCount();
+    await updateMatchingTabsCount();
+    await highlightMatchingTabs();
+  }
 
+  // Call initialize to set everything up
+  initialize();
+  
+  // Update matching tabs count and highlights on tab changes
+  const updateTabListeners = async () => {
+    await updateMatchingTabsCount();
+    await highlightMatchingTabs();
+  };
+  
+  chrome.tabs.onUpdated.addListener(updateTabListeners);
+  chrome.tabs.onRemoved.addListener(updateTabListeners);
+  chrome.tabs.onCreated.addListener(updateTabListeners);
+
+  // Set popup timestamp to current time
   if (popupTimestamp) {
     popupTimestamp.textContent = new Date().toLocaleString();
   }
+  
+  // Set build date in the list section (using extension's install time)
+  const buildDateElement = document.getElementById('buildDate');
+  if (buildDateElement) {
+    // Get extension's install/update time from manifest
+    const manifestData = chrome.runtime.getManifest();
+    const installTime = new Date(manifestData.installTime || Date.now());
+    const options = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true
+    };
+    buildDateElement.textContent = `v${manifestData.version} • ${installTime.toLocaleString(undefined, options)}`;
+  }
 
-  window.addEventListener('beforeunload', () => {
-    clearHighlightedTabs();
+  // Clear highlights when popup is closed
+  window.addEventListener('beforeunload', clearHighlightedTabs);
+  
+  // Handle tab visibility changes
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) {
+      await clearHighlightedTabs();
+    } else {
+      // Small delay to ensure tab data is up to date
+      setTimeout(async () => {
+        await updateMatchingTabsCount();
+        await highlightMatchingTabs();
+      }, 100);
+    }
   });
 });
