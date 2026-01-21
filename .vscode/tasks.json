@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Workspace Opened - Check for Tasks",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"💡 Reminder: Run '/check' in Claude Code to pull in tasks from Reminders and main inbox"
+			],
+			"runOptions": {
+				"runOn": "folderOpen"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false
+			},
+			"problemMatcher": []
+		}
+	]
+}
