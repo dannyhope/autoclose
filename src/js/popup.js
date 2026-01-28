@@ -2,6 +2,7 @@ import { addSafeUrl, addSafeUrls, getSafeUrls, removeSafeUrl, STORAGE_KEYS } fro
 import { escapeHtml, matchesUrlPattern, parseUrlParts, toPatternFromTabUrl } from './lib/url-utils.js';
 import { findMatchingTabs, getDuplicateTabIds } from './lib/tab-actions.js';
 import { getUIState, setUIState, toggleUIState, UI_STATE_KEYS } from './lib/ui-state.js';
+import { getAllBookmarks, findBookmarkedTabs, findBlankTabs } from './lib/bookmark-utils.js';
 
 const POPUP_COLLAPSED_HEIGHT = 125;
 const POPUP_EXPANDED_HEIGHT = 600;
@@ -41,8 +42,10 @@ function collectRefs() {
     closeTabsButton: document.getElementById('closeTabs'),
     closeTabsText: document.getElementById('closeTabsText'),
     alwaysCloseDupesCheckbox: document.getElementById('alwaysCloseDupes'),
+    alwaysCloseBookmarkedCheckbox: document.getElementById('alwaysCloseBookmarked'),
     toggleListLink: document.getElementById('toggleList'),
-    urlListSection: document.getElementById('urlListSection')
+    urlListSection: document.getElementById('urlListSection'),
+    tileTabsButton: document.getElementById('tileTabs')
   };
 }
 
@@ -94,6 +97,11 @@ async function restoreSettings() {
   if (refs.alwaysCloseDupesCheckbox) {
     refs.alwaysCloseDupesCheckbox.checked = Boolean(alwaysCloseDupes);
   }
+
+  const alwaysCloseBookmarked = await getUIState(UI_STATE_KEYS.ALWAYS_CLOSE_BOOKMARKED);
+  if (refs.alwaysCloseBookmarkedCheckbox) {
+    refs.alwaysCloseBookmarkedCheckbox.checked = Boolean(alwaysCloseBookmarked);
+  }
 }
 
 function wireEvents() {
@@ -111,9 +119,17 @@ function wireEvents() {
     await chrome.runtime.sendMessage({ action: 'updateBadge' });
   });
 
+  refs.alwaysCloseBookmarkedCheckbox?.addEventListener('change', async () => {
+    const value = Boolean(refs.alwaysCloseBookmarkedCheckbox?.checked);
+    await setUIState(UI_STATE_KEYS.ALWAYS_CLOSE_BOOKMARKED, value);
+    await highlightMatchingTabs();
+    await chrome.runtime.sendMessage({ action: 'updateBadge' });
+  });
+
   refs.addCurrentUrlButton?.addEventListener('click', () => handleAddCurrentUrl());
   refs.addAllTabsButton?.addEventListener('click', () => handleAddAllTabs());
   refs.closeTabsButton?.addEventListener('click', () => handleCloseTabsClick());
+  refs.tileTabsButton?.addEventListener('click', () => handleTileTabsClick());
 
   document.addEventListener('keydown', handleOptionKeyDown);
   document.addEventListener('keyup', handleOptionKeyUp);
@@ -280,7 +296,7 @@ async function renderUrlList() {
     group.items.forEach((item) => refs.urlList.appendChild(createDomainEntry(item, urlToTabsMap.get(item.url) || [])));
   });
 
-  appendCopyListButton();
+  appendCopyPasteButtons();
 }
 
 function groupByDomain(items) {
@@ -375,7 +391,7 @@ async function handleDeleteUrl(url) {
   await chrome.runtime.sendMessage({ action: 'updateBadge' });
 }
 
-function appendCopyListButton() {
+function appendCopyPasteButtons() {
   const list = context.refs.urlList;
   if (!list) {
     return;
@@ -384,14 +400,23 @@ function appendCopyListButton() {
   if (!container) {
     container = document.createElement('li');
     container.id = 'copyListContainer';
-    container.className = 'flex justify-end pt-2';
-    const button = document.createElement('button');
-    button.id = 'copyList';
-    button.title = 'Copy your list to clipboard';
-    button.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
-    button.textContent = 'Copy list';
-    button.addEventListener('click', () => handleCopyListClick(button));
-    container.appendChild(button);
+    container.className = 'flex justify-end gap-2 pt-2';
+
+    const pasteButton = document.createElement('button');
+    pasteButton.id = 'pasteList';
+    pasteButton.title = 'Paste URLs from clipboard';
+    pasteButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
+    pasteButton.textContent = 'Paste';
+    pasteButton.addEventListener('click', () => handlePasteListClick(pasteButton));
+    container.appendChild(pasteButton);
+
+    const copyButton = document.createElement('button');
+    copyButton.id = 'copyList';
+    copyButton.title = 'Copy your list to clipboard';
+    copyButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
+    copyButton.textContent = 'Copy';
+    copyButton.addEventListener('click', () => handleCopyListClick(copyButton));
+    container.appendChild(copyButton);
   }
   list.appendChild(container);
 }
@@ -406,6 +431,28 @@ async function handleCopyListClick(button) {
     setTimeout(() => (button.textContent = current), 1500);
   } catch (error) {
     console.error('Error copying URL list:', error);
+  }
+}
+
+async function handlePasteListClick(button) {
+  try {
+    const text = await navigator.clipboard.readText();
+    const urls = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (urls.length > 0) {
+      await addSafeUrls(urls);
+      await refreshUi();
+      await chrome.runtime.sendMessage({ action: 'updateBadge' });
+
+      const current = button.textContent;
+      button.textContent = 'Pasted!';
+      setTimeout(() => (button.textContent = current), 1500);
+    }
+  } catch (error) {
+    console.error('Error pasting URL list:', error);
   }
 }
 
@@ -432,11 +479,6 @@ async function updateMatchingTabsCount() {
 
 async function highlightMatchingTabs() {
   const safeUrls = await getSafeUrls();
-  if (!safeUrls.length) {
-    await clearHighlightedTabs();
-    return;
-  }
-
   const tabs = await chrome.tabs.query({});
   const matching = findMatchingTabs(tabs, safeUrls);
   const matchingIds = new Set(matching.map((tab) => tab.id).filter((id) => typeof id === 'number'));
@@ -448,7 +490,26 @@ async function highlightMatchingTabs() {
     dupeIds.forEach((id) => highlighted.add(id));
   }
 
+  const bookmarkedEnabled = await getUIState(UI_STATE_KEYS.ALWAYS_CLOSE_BOOKMARKED);
+  if (bookmarkedEnabled) {
+    const bookmarks = await getAllBookmarks();
+    const bookmarkUrls = bookmarks.map(b => b.normalizedUrl);
+    const bookmarkedTabs = findBookmarkedTabs(tabs, bookmarkUrls);
+    const blankTabs = findBlankTabs(tabs);
+    bookmarkedTabs.forEach((tab) => {
+      if (typeof tab.id === 'number') highlighted.add(tab.id);
+    });
+    blankTabs.forEach((tab) => {
+      if (typeof tab.id === 'number') highlighted.add(tab.id);
+    });
+  }
+
   await clearHighlightedTabs();
+
+  if (highlighted.size === 0) {
+    return;
+  }
+
   context.state.highlightedTabIds = Array.from(highlighted);
 
   context.state.highlightedTabIds.forEach((id) => {
@@ -501,6 +562,28 @@ async function openUrlInNewTab(url) {
     target = `https://${target}`;
   }
   await chrome.tabs.create({ url: target });
+}
+
+
+async function handleTileTabsClick() {
+  const tabs = await chrome.tabs.query({});
+
+  // Confirm for many tabs
+  if (tabs.length > 10) {
+    const button = context.refs.tileTabsButton;
+    if (button) {
+      button.textContent = `Tile ${tabs.length} tabs?`;
+      button.classList.add('bg-orange-200');
+      setTimeout(() => {
+        button.textContent = 'Tile all tabs';
+        button.classList.remove('bg-orange-200');
+      }, 2000);
+      return;
+    }
+  }
+
+  await chrome.runtime.sendMessage({ action: 'tileTabs' });
+  window.close();
 }
 
 function initialize() {

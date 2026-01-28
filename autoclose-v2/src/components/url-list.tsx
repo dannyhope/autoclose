@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { ChevronDown, Copy, Check } from "lucide-react"
+import { ChevronDown, Copy, Check, ClipboardPaste } from "lucide-react"
 import { ScrollArea } from "~/components/ui/scroll-area"
 
 async function sendMessage(name: string) {
@@ -18,7 +18,7 @@ interface UrlGroup {
 }
 
 export function UrlList() {
-  const { safeUrls, removeUrl } = useSafeUrls()
+  const { safeUrls, removeUrl, addUrls } = useSafeUrls()
   const { isOpen, toggle } = useListOpen()
   const [openTabs, setOpenTabs] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
@@ -81,6 +81,23 @@ export function UrlList() {
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      const urls = text
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+
+      if (urls.length > 0) {
+        await addUrls(urls)
+        await sendMessage("update-badge")
+      }
+    } catch (error) {
+      console.error("Error pasting URLs:", error)
+    }
+  }
+
   return (
     <div className="flex flex-col">
       <button
@@ -119,8 +136,17 @@ export function UrlList() {
             </div>
           </ScrollArea>
 
-          {safeUrls.length > 0 && (
-            <div className="flex justify-end pt-2">
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePaste}
+              className="gap-1"
+            >
+              <ClipboardPaste className="w-3 h-3" />
+              Paste
+            </Button>
+            {safeUrls.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
@@ -135,12 +161,12 @@ export function UrlList() {
                 ) : (
                   <>
                     <Copy className="w-3 h-3" />
-                    Copy list
+                    Copy
                   </>
                 )}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
