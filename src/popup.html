@@ -136,7 +136,16 @@
           <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span>
           <span class="leading-tight whitespace-nowrap">Safe to close websites</span>
         </button>
-        <label class="flex items-center gap-2 text-sm text-gray-900" title="When any close action runs, close all but one duplicate tab (by URL)">
+        <button id="tileTabs" title="Separate each tab into its own window and tile them in a grid" class="bg-gray-200 text-gray-900 border border-gray-300 py-2 px-4 rounded text-sm font-semibold hover:bg-gray-300 transition">
+          Tile all tabs
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-sm text-gray-900">
+        <label class="flex items-center gap-2" title="When closing, also close tabs that are already bookmarked">
+          <input id="alwaysCloseBookmarked" type="checkbox" class="h-4 w-4" />
+          <span>Close bookmarked</span>
+        </label>
+        <label class="flex items-center gap-2" title="When closing, also close all but one duplicate tab (by URL)">
           <input id="alwaysCloseDupes" type="checkbox" class="h-4 w-4" />
           <span>Deduplicate tabs</span>
         </label>

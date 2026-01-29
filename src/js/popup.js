@@ -259,15 +259,12 @@ async function renderUrlList() {
   }
 
   const safeUrls = await getSafeUrls();
-  console.log('DEBUG: Retrieved safeUrls:', safeUrls);
   const sorted = safeUrls.slice().sort((a, b) => String(a).localeCompare(String(b)));
-  console.log('DEBUG: Sorted URLs:', sorted);
   const tabs = await chrome.tabs.query({});
   const items = sorted.map((url) => ({
     url,
     isOpen: tabs.some((tab) => tab.url && matchesUrlPattern(tab.url, String(url || '')))
   }));
-  console.log('DEBUG: Items with isOpen flag:', items);
 
   // Track duplicates and mark only first instance
   const urlToTabsMap = new Map();
@@ -304,15 +301,12 @@ function groupByDomain(items) {
   items.forEach((item) => {
     const { hostname } = parseUrlParts(item.url);
     const key = String(hostname || item.url || '').toLowerCase();
-    console.log('DEBUG: Grouping item:', item.url, '-> hostname:', hostname, '-> key:', key);
     if (!map.has(key)) {
       map.set(key, { domain: hostname || item.url, items: [] });
     }
     map.get(key).items.push(item);
   });
-  const groups = Array.from(map.values()).sort((a, b) => String(a.domain).localeCompare(String(b.domain)));
-  console.log('DEBUG: Final groups:', groups);
-  return groups;
+  return Array.from(map.values()).sort((a, b) => String(a.domain).localeCompare(String(b.domain)));
 }
 
 function createDomainHeader(domain) {
@@ -320,7 +314,7 @@ function createDomainHeader(domain) {
   header.className = 'flex items-center gap-2 text-sm text-gray-500 mt-3 mb-0 px-1';
 
   const favicon = document.createElement('img');
-  favicon.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=16`;
+  favicon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=https://${encodeURIComponent(domain)}&size=16`;
   favicon.alt = '';
   favicon.className = 'w-4 h-4 flex-none';
   favicon.title = domain;
@@ -358,20 +352,6 @@ function createDomainEntry(item, matchingTabs = []) {
     deleteBtn.addEventListener('click', () => handleDeleteUrl(item.url));
   }
   return li;
-}
-
-function createDeleteButton(url) {
-  const button = document.createElement('button');
-  button.className = 'delete-btn flex-none px-1';
-  button.dataset.url = url;
-  button.title = 'Remove this pattern';
-  const icon = document.createElement('img');
-  icon.src = 'icons/bin-darker.svg';
-  icon.alt = 'Remove';
-  icon.className = 'w-4 h-4 mx-auto';
-  button.appendChild(icon);
-  button.addEventListener('click', () => handleDeleteUrl(url));
-  return button;
 }
 
 function attachUrlInteractions(element, url) {
@@ -586,14 +566,17 @@ async function handleTileTabsClick() {
   window.close();
 }
 
-function initialize() {
-  collectRefs();
-  initPopupLayout();
-  restoreSettings().then(() => {
+async function initialize() {
+  try {
+    collectRefs();
+    initPopupLayout();
+    await restoreSettings();
     wireEvents();
-    refreshUi();
+    await refreshUi();
     setupTabListeners();
-  });
+  } catch (error) {
+    console.error('Error initializing popup:', error);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initialize);

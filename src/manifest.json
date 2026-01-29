@@ -5,7 +5,9 @@
   "description": "Manage a list of URLs that are safe to close and automatically close matching tabs",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "bookmarks",
+    "favicon"
   ],
   "action": {
     "default_popup": "popup.html",

@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   SAFE_URLS: 'safeUrls',
   ALWAYS_CLOSE_DUPES: 'alwaysCloseDupes',
+  ALWAYS_CLOSE_BOOKMARKED: 'alwaysCloseBookmarked',
   LIST_TOGGLE_STATE: 'listToggleState'
 };
 

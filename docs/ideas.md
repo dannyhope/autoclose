@@ -1,5 +1,9 @@
 # Ideas
 
+## Future Features (from archived projects)
+- **Closie integration**: Add ability to close tabs that are already bookmarked (bookmark-aware tab closing)
+- **Tabble integration**: Add window tiling functionality to separate tabs into individual windows arranged in a grid layout
+
 ## Frameworks & Libraries
 - **Alpine.js + minimal build step**: drop heavy custom DOM wiring in `popup.js` by adopting Alpine for declarative state while avoiding a full SPA rewrite.
 - **Vite build pipeline**: introduces modern bundling, TypeScript opt-in (if ever needed), and hot reload for popup/background scripts while remaining lightweight.

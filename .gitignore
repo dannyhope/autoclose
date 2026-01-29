@@ -21,7 +21,8 @@ yarn-error.log*
 
 # IDE specific files
 .idea/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
 *.swp
 *.swo
 
