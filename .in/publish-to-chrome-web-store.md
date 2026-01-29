@@ -1,0 +1,1 @@
+Autoclose: get it into the Chrome web store. Ask me questions until you have everything the Chrome Web Store might ask for
