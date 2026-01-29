@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { findMatchingTabs, getDuplicateTabIds, type ChromeTab } from "~/lib/tab-actions"
 import { findBookmarkedTabs, findBlankTabs, getAllBookmarks } from "~/lib/bookmark-utils"
 import { useSafeUrls } from "./use-safe-urls"
-import { useAlwaysCloseDupes, useAlwaysCloseBookmarked } from "./use-ui-settings"
+import { useAlwaysCloseDupes, useAlwaysCloseBookmarked, useLooseMatching } from "./use-ui-settings"
 
 export interface MatchingTabsResult {
   matchingTabs: ChromeTab[]
@@ -17,15 +17,16 @@ export function useMatchingTabs(): MatchingTabsResult {
   const { safeUrls } = useSafeUrls()
   const { enabled: closeDupes } = useAlwaysCloseDupes()
   const { enabled: closeBookmarked } = useAlwaysCloseBookmarked()
-  
+  const { enabled: looseMatching } = useLooseMatching()
+
   const [matchingTabs, setMatchingTabs] = useState<ChromeTab[]>([])
   const [tabIdsToClose, setTabIdsToClose] = useState<Set<number>>(new Set())
 
   const refresh = useCallback(async () => {
     const tabs = await chrome.tabs.query({})
-    
+
     // Find tabs matching safe URLs
-    const matching = findMatchingTabs(tabs, safeUrls)
+    const matching = findMatchingTabs(tabs, safeUrls, looseMatching)
     const idsToClose = new Set<number>(
       matching
         .map(tab => tab.id)
@@ -60,7 +61,7 @@ export function useMatchingTabs(): MatchingTabsResult {
 
     setMatchingTabs(matching)
     setTabIdsToClose(idsToClose)
-  }, [safeUrls, closeDupes, closeBookmarked])
+  }, [safeUrls, closeDupes, closeBookmarked, looseMatching])
 
   // Refresh on mount and when dependencies change
   useEffect(() => {

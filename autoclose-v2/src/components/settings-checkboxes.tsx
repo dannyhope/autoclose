@@ -3,7 +3,7 @@ import { Checkbox } from "~/components/ui/checkbox"
 async function sendMessage(name: string) {
   return chrome.runtime.sendMessage({ name })
 }
-import { useAlwaysCloseDupes, useAlwaysCloseBookmarked } from "~/hooks/use-ui-settings"
+import { useAlwaysCloseDupes, useAlwaysCloseBookmarked, useLooseMatching } from "~/hooks/use-ui-settings"
 
 interface SettingsCheckboxesProps {
   onSettingChange: () => void
@@ -12,6 +12,7 @@ interface SettingsCheckboxesProps {
 export function SettingsCheckboxes({ onSettingChange }: SettingsCheckboxesProps) {
   const { enabled: closeDupes, setEnabled: setCloseDupes } = useAlwaysCloseDupes()
   const { enabled: closeBookmarked, setEnabled: setCloseBookmarked } = useAlwaysCloseBookmarked()
+  const { enabled: looseMatching, setEnabled: setLooseMatching } = useLooseMatching()
 
   const handleDupesChange = async (checked: boolean) => {
     await setCloseDupes(checked)
@@ -21,6 +22,12 @@ export function SettingsCheckboxes({ onSettingChange }: SettingsCheckboxesProps)
 
   const handleBookmarkedChange = async (checked: boolean) => {
     await setCloseBookmarked(checked)
+    onSettingChange()
+    await sendMessage("update-badge")
+  }
+
+  const handleLooseMatchingChange = async (checked: boolean) => {
+    await setLooseMatching(checked)
     onSettingChange()
     await sendMessage("update-badge")
   }
@@ -40,6 +47,16 @@ export function SettingsCheckboxes({ onSettingChange }: SettingsCheckboxesProps)
           onCheckedChange={handleBookmarkedChange}
         />
         <span>Also close bookmarked tabs</span>
+      </label>
+      <label
+        className="flex items-center gap-2 cursor-pointer"
+        title="Strip tracking parameters (like fbclid, utm_source) when adding URLs"
+      >
+        <Checkbox
+          checked={looseMatching}
+          onCheckedChange={handleLooseMatchingChange}
+        />
+        <span>Loose matching (strip tracking params)</span>
       </label>
     </div>
   )

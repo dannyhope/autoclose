@@ -9,8 +9,8 @@ import { Button } from "~/components/ui/button"
 import { DomainGroup } from "./domain-group"
 import { UrlListItem } from "./url-list-item"
 import { useSafeUrls } from "~/hooks/use-safe-urls"
-import { useListOpen } from "~/hooks/use-ui-settings"
-import { parseUrlParts, matchesUrlPattern } from "~/lib/url-utils"
+import { useListOpen, useLooseMatching } from "~/hooks/use-ui-settings"
+import { parseUrlParts, matchesUrlPattern, parseClipboardText } from "~/lib/url-utils"
 
 interface UrlGroup {
   domain: string
@@ -20,6 +20,7 @@ interface UrlGroup {
 export function UrlList() {
   const { safeUrls, removeUrl, addUrls } = useSafeUrls()
   const { isOpen, toggle } = useListOpen()
+  const { enabled: looseMatching } = useLooseMatching()
   const [openTabs, setOpenTabs] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
 
@@ -51,7 +52,7 @@ export function UrlList() {
     for (const url of sorted) {
       const { hostname } = parseUrlParts(url)
       const key = hostname.toLowerCase()
-      const isOpen = openTabs.some(tabUrl => matchesUrlPattern(tabUrl, url))
+      const isOpen = openTabs.some(tabUrl => matchesUrlPattern(tabUrl, url, looseMatching))
 
       if (!map.has(key)) {
         map.set(key, { domain: hostname, items: [] })
@@ -60,7 +61,7 @@ export function UrlList() {
     }
 
     return Array.from(map.values()).sort((a, b) => a.domain.localeCompare(b.domain))
-  }, [safeUrls, openTabs])
+  }, [safeUrls, openTabs, looseMatching])
 
   const handleDelete = async (url: string) => {
     await removeUrl(url)
@@ -83,18 +84,28 @@ export function UrlList() {
 
   const handlePaste = async () => {
     try {
+      console.log("[paste] Reading clipboard…")
       const text = await navigator.clipboard.readText()
-      const urls = text
-        .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
+      console.log("[paste] Clipboard text length:", text.length, "chars")
+      console.log("[paste] First 200 chars:", text.slice(0, 200))
+
+      const urls = parseClipboardText(text)
+      console.log("[paste] Parsed", urls.length, "URLs from clipboard")
 
       if (urls.length > 0) {
+        console.log("[paste] Current safeUrls count:", safeUrls.length)
+        const dupes = urls.filter(u => safeUrls.includes(u))
+        const fresh = urls.filter(u => !safeUrls.includes(u))
+        console.log("[paste] Duplicates (skipped):", dupes.length, "| New:", fresh.length)
+
         await addUrls(urls)
         await sendMessage("update-badge")
+        console.log("[paste] Done. safeUrls count now:", safeUrls.length + fresh.length)
+      } else {
+        console.log("[paste] No URLs found in clipboard text")
       }
     } catch (error) {
-      console.error("Error pasting URLs:", error)
+      console.error("[paste] Error:", error)
     }
   }
 

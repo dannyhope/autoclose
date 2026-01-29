@@ -5,7 +5,8 @@ import { Storage } from "@plasmohq/storage"
 const STORAGE_KEYS = {
   LIST_TOGGLE_STATE: "listToggleState",
   ALWAYS_CLOSE_DUPES: "alwaysCloseDupes",
-  ALWAYS_CLOSE_BOOKMARKED: "alwaysCloseBookmarked"
+  ALWAYS_CLOSE_BOOKMARKED: "alwaysCloseBookmarked",
+  LOOSE_MATCHING: "looseMatching"
 } as const
 
 const storage = new Storage({ area: "sync" })
@@ -33,9 +34,9 @@ export function useAlwaysCloseDupes() {
   const [enabled, setEnabled] = useStorage<boolean>({
     key: STORAGE_KEYS.ALWAYS_CLOSE_DUPES,
     instance: storage
-  }, false)
+  }, true)
 
-  return { enabled: enabled ?? false, setEnabled }
+  return { enabled: enabled ?? true, setEnabled }
 }
 
 /**
@@ -45,9 +46,21 @@ export function useAlwaysCloseBookmarked() {
   const [enabled, setEnabled] = useStorage<boolean>({
     key: STORAGE_KEYS.ALWAYS_CLOSE_BOOKMARKED,
     instance: storage
-  }, false)
+  }, true)
 
-  return { enabled: enabled ?? false, setEnabled }
+  return { enabled: enabled ?? true, setEnabled }
+}
+
+/**
+ * Hook for managing the "loose matching" setting (strip tracking params)
+ */
+export function useLooseMatching() {
+  const [enabled, setEnabled] = useStorage<boolean>({
+    key: STORAGE_KEYS.LOOSE_MATCHING,
+    instance: storage
+  }, true) // default: true
+
+  return { enabled: enabled ?? true, setEnabled }
 }
 
 /**

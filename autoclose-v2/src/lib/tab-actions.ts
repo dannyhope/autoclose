@@ -12,7 +12,8 @@ export interface ChromeTab {
  */
 export function findMatchingTabs(
   tabs: ChromeTab[] = [],
-  safeUrls: string[] = []
+  safeUrls: string[] = [],
+  looseMatching: boolean = false
 ): ChromeTab[] {
   if (!Array.isArray(safeUrls) || safeUrls.length === 0) {
     return []
@@ -23,7 +24,7 @@ export function findMatchingTabs(
       return false
     }
     return safeUrls.some((pattern) =>
-      matchesUrlPattern(tab.url!, String(pattern || ""))
+      matchesUrlPattern(tab.url!, String(pattern || ""), looseMatching)
     )
   })
 }

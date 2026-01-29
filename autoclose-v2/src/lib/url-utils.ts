@@ -1,3 +1,5 @@
+import { TRACKING_PARAMS } from "./tracking-params"
+
 /**
  * Escapes HTML special characters to prevent XSS
  */
@@ -35,25 +37,46 @@ export function parseUrlParts(urlStr: string): UrlParts {
 
 /**
  * Checks if a URL matches a given pattern
- * 
+ *
  * Pattern types:
  * - Full URL (https://example.com/path) - matches protocol, host, port, and path prefix
  * - Path only (/path) - matches just the path+query
  * - Suffix (example.com/path) - matches URL ending
  * - Exact match with $ - pattern ending in $ requires exact path match
+ *
+ * When looseMatching is true, tracking parameters are stripped from both
+ * the URL and pattern before comparison.
  */
-export function matchesUrlPattern(url: string, pattern: string): boolean {
+export function matchesUrlPattern(
+  url: string,
+  pattern: string,
+  looseMatching: boolean = false
+): boolean {
   try {
-    if (!/^https?:\/\//i.test(pattern)) {
-      if (pattern.startsWith("/")) {
-        const urlObj = new URL(url)
-        return urlObj.pathname + urlObj.search === pattern
+    // Strip tracking params if loose matching is enabled
+    let urlToTest = url
+    let patternToTest = pattern
+    if (looseMatching) {
+      urlToTest = stripTrackingParams(url)
+      // For suffix patterns without protocol, we need to add one temporarily
+      if (!/^https?:\/\//i.test(pattern)) {
+        const tempPattern = stripTrackingParams("https://" + pattern)
+        patternToTest = tempPattern.replace(/^https:\/\//, "")
+      } else {
+        patternToTest = stripTrackingParams(pattern)
       }
-      return url.endsWith(pattern)
     }
 
-    const patternUrl = new URL(pattern)
-    const testUrl = new URL(url)
+    if (!/^https?:\/\//i.test(patternToTest)) {
+      if (patternToTest.startsWith("/")) {
+        const urlObj = new URL(urlToTest)
+        return urlObj.pathname + urlObj.search === patternToTest
+      }
+      return urlToTest.endsWith(patternToTest)
+    }
+
+    const patternUrl = new URL(patternToTest)
+    const testUrl = new URL(urlToTest)
 
     if (
       patternUrl.protocol !== testUrl.protocol ||
@@ -95,6 +118,36 @@ export function normalizeUrlForDupeCheck(url: string): string {
       .replace(/^https?:\/\//i, "")
       .replace(/\/+$/, "")
       .toLowerCase()
+  }
+}
+
+/**
+ * Parses clipboard text into an array of URLs.
+ * Splits on newlines, trims whitespace, and filters empty lines.
+ */
+export function parseClipboardText(text: string): string[] {
+	return text
+		.split("\n")
+		.map(line => line.trim())
+		.filter(line => line.length > 0)
+}
+
+/**
+ * Strips known tracking parameters from a URL
+ */
+export function stripTrackingParams(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const params = new URLSearchParams(parsed.search)
+
+    for (const param of TRACKING_PARAMS) {
+      params.delete(param)
+    }
+
+    parsed.search = params.toString()
+    return parsed.toString()
+  } catch {
+    return url
   }
 }
 
