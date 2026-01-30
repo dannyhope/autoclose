@@ -19,6 +19,24 @@ function Popup() {
         <ActionButtons onRefresh={handleRefresh} />
         <SettingsCheckboxes onSettingChange={handleRefresh} />
         <UrlList />
+        <footer className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
+          <a
+            href="https://dannyhope.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground"
+          >
+            A Danny Hope product
+          </a>
+          <a
+            href="https://github.com/dannyhope/autoclose/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground"
+          >
+            Feedback
+          </a>
+        </footer>
       </div>
     </TooltipProvider>
   )
