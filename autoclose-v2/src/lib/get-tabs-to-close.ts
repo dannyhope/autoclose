@@ -16,8 +16,12 @@ export async function getTabIdsToClose(): Promise<Set<number>> {
   const alwaysCloseDupes = await getSetting(STORAGE_KEYS.ALWAYS_CLOSE_DUPES, true)
   const alwaysCloseBookmarked = await getSetting(STORAGE_KEYS.ALWAYS_CLOSE_BOOKMARKED, true)
   const looseMatching = await getSetting(STORAGE_KEYS.LOOSE_MATCHING, true)
+  const closeWhitelistItems = await getSetting(STORAGE_KEYS.CLOSE_WHITELIST_ITEMS, true)
 
-  const matchingTabs = findMatchingTabs(tabs as ChromeTab[], safeUrls, looseMatching)
+  // Find tabs matching whitelist (only if closeWhitelistItems is enabled)
+  const matchingTabs = closeWhitelistItems
+    ? findMatchingTabs(tabs as ChromeTab[], safeUrls, looseMatching)
+    : []
   const tabIds = new Set<number>(
     matchingTabs
       .map(tab => tab.id)

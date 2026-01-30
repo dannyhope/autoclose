@@ -6,7 +6,8 @@ const STORAGE_KEYS = {
   LIST_TOGGLE_STATE: "listToggleState",
   ALWAYS_CLOSE_DUPES: "alwaysCloseDupes",
   ALWAYS_CLOSE_BOOKMARKED: "alwaysCloseBookmarked",
-  LOOSE_MATCHING: "looseMatching"
+  LOOSE_MATCHING: "looseMatching",
+  CLOSE_WHITELIST_ITEMS: "closeWhitelistItems"
 } as const
 
 const storage = new Storage({ area: "sync" })
@@ -59,6 +60,38 @@ export function useLooseMatching() {
     key: STORAGE_KEYS.LOOSE_MATCHING,
     instance: storage
   }, true) // default: true
+
+  return { enabled: enabled ?? true, setEnabled }
+}
+
+/**
+ * Hook for managing the "strict matching" setting
+ * Inverts the loose matching semantics while keeping backward compatibility
+ * When strict=false (default), tracking params are stripped (same as loose=true)
+ * When strict=true, URLs must match exactly (same as loose=false)
+ */
+export function useStrictMatching() {
+  const [looseMatching, setLooseMatching] = useStorage<boolean>({
+    key: STORAGE_KEYS.LOOSE_MATCHING,
+    instance: storage
+  }, true) // Keep default as true for looseMatching
+
+  return {
+    enabled: !(looseMatching ?? true), // Invert: loose=true → strict=false
+    setEnabled: async (strict: boolean) => setLooseMatching(!strict)
+  }
+}
+
+/**
+ * Hook for managing the "close whitelist items" setting
+ * When enabled (default), tabs matching whitelist URLs are closed
+ * When disabled, only duplicates and bookmarked pages are considered
+ */
+export function useCloseWhitelistItems() {
+  const [enabled, setEnabled] = useStorage<boolean>({
+    key: STORAGE_KEYS.CLOSE_WHITELIST_ITEMS,
+    instance: storage
+  }, true) // default: true - close items that match the whitelist
 
   return { enabled: enabled ?? true, setEnabled }
 }

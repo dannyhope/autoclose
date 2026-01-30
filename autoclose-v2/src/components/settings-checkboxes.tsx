@@ -3,7 +3,7 @@ import { Checkbox } from "~/components/ui/checkbox"
 async function sendMessage(name: string) {
   return chrome.runtime.sendMessage({ name })
 }
-import { useAlwaysCloseDupes, useAlwaysCloseBookmarked, useLooseMatching } from "~/hooks/use-ui-settings"
+import { useAlwaysCloseDupes, useAlwaysCloseBookmarked, useCloseWhitelistItems } from "~/hooks/use-ui-settings"
 
 interface SettingsCheckboxesProps {
   onSettingChange: () => void
@@ -12,7 +12,7 @@ interface SettingsCheckboxesProps {
 export function SettingsCheckboxes({ onSettingChange }: SettingsCheckboxesProps) {
   const { enabled: closeDupes, setEnabled: setCloseDupes } = useAlwaysCloseDupes()
   const { enabled: closeBookmarked, setEnabled: setCloseBookmarked } = useAlwaysCloseBookmarked()
-  const { enabled: looseMatching, setEnabled: setLooseMatching } = useLooseMatching()
+  const { enabled: closeWhitelist, setEnabled: setCloseWhitelist } = useCloseWhitelistItems()
 
   const handleDupesChange = async (checked: boolean) => {
     await setCloseDupes(checked)
@@ -26,37 +26,37 @@ export function SettingsCheckboxes({ onSettingChange }: SettingsCheckboxesProps)
     await sendMessage("update-badge")
   }
 
-  const handleLooseMatchingChange = async (checked: boolean) => {
-    await setLooseMatching(checked)
+  const handleWhitelistChange = async (checked: boolean) => {
+    await setCloseWhitelist(checked)
     onSettingChange()
     await sendMessage("update-badge")
   }
 
   return (
     <div className="flex flex-col gap-2 text-sm">
+      <label
+        className="flex items-center gap-2 cursor-pointer"
+        title="Close tabs whose URLs match entries in the White List"
+      >
+        <Checkbox
+          checked={closeWhitelist}
+          onCheckedChange={handleWhitelistChange}
+        />
+        <span>Close items in White List</span>
+      </label>
       <label className="flex items-center gap-2 cursor-pointer">
         <Checkbox
           checked={closeDupes}
           onCheckedChange={handleDupesChange}
         />
-        <span>Also close duplicate tabs</span>
+        <span>Deduplicate tabs</span>
       </label>
       <label className="flex items-center gap-2 cursor-pointer">
         <Checkbox
           checked={closeBookmarked}
           onCheckedChange={handleBookmarkedChange}
         />
-        <span>Also close bookmarked tabs</span>
-      </label>
-      <label
-        className="flex items-center gap-2 cursor-pointer"
-        title="Strip tracking parameters (like fbclid, utm_source) when adding URLs"
-      >
-        <Checkbox
-          checked={looseMatching}
-          onCheckedChange={handleLooseMatchingChange}
-        />
-        <span>Loose matching (strip tracking params)</span>
+        <span>Close bookmarked pages</span>
       </label>
     </div>
   )

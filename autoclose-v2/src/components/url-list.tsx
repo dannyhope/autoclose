@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { ChevronDown, Copy, Check, ClipboardPaste } from "lucide-react"
 import { ScrollArea } from "~/components/ui/scroll-area"
+import { Checkbox } from "~/components/ui/checkbox"
 
 async function sendMessage(name: string) {
   return chrome.runtime.sendMessage({ name })
@@ -9,7 +10,7 @@ import { Button } from "~/components/ui/button"
 import { DomainGroup } from "./domain-group"
 import { UrlListItem } from "./url-list-item"
 import { useSafeUrls } from "~/hooks/use-safe-urls"
-import { useListOpen, useLooseMatching } from "~/hooks/use-ui-settings"
+import { useListOpen, useStrictMatching } from "~/hooks/use-ui-settings"
 import { parseUrlParts, matchesUrlPattern, parseClipboardText } from "~/lib/url-utils"
 
 interface UrlGroup {
@@ -20,7 +21,7 @@ interface UrlGroup {
 export function UrlList() {
   const { safeUrls, removeUrl, addUrls } = useSafeUrls()
   const { isOpen, toggle } = useListOpen()
-  const { enabled: looseMatching } = useLooseMatching()
+  const { enabled: strictMatching, setEnabled: setStrictMatching } = useStrictMatching()
   const [openTabs, setOpenTabs] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
 
@@ -45,6 +46,7 @@ export function UrlList() {
   }, [])
 
   // Group URLs by domain
+  // Pass !strictMatching as looseMatching: strict=false means loose=true
   const groups = useMemo((): UrlGroup[] => {
     const sorted = [...safeUrls].sort((a, b) => a.localeCompare(b))
     const map = new Map<string, UrlGroup>()
@@ -52,7 +54,7 @@ export function UrlList() {
     for (const url of sorted) {
       const { hostname } = parseUrlParts(url)
       const key = hostname.toLowerCase()
-      const isOpen = openTabs.some(tabUrl => matchesUrlPattern(tabUrl, url, looseMatching))
+      const isOpen = openTabs.some(tabUrl => matchesUrlPattern(tabUrl, url, !strictMatching))
 
       if (!map.has(key)) {
         map.set(key, { domain: hostname, items: [] })
@@ -61,7 +63,7 @@ export function UrlList() {
     }
 
     return Array.from(map.values()).sort((a, b) => a.domain.localeCompare(b.domain))
-  }, [safeUrls, openTabs, looseMatching])
+  }, [safeUrls, openTabs, strictMatching])
 
   const handleDelete = async (url: string) => {
     await removeUrl(url)
@@ -109,6 +111,11 @@ export function UrlList() {
     }
   }
 
+  const handleStrictMatchingChange = async (checked: boolean) => {
+    await setStrictMatching(checked)
+    await sendMessage("update-badge")
+  }
+
   return (
     <div className="flex flex-col">
       <button
@@ -118,11 +125,22 @@ export function UrlList() {
         <ChevronDown
           className={"w-4 h-4 transition-transform " + (isOpen ? "" : "-rotate-90")}
         />
-        <span>Safe URLs ({safeUrls.length})</span>
+        <span>White List ({safeUrls.length})</span>
       </button>
 
       {isOpen && (
         <div className="flex flex-col">
+          <label
+            className="flex items-center gap-2 cursor-pointer py-2 text-sm"
+            title="When enabled, URLs must match exactly including query parameters"
+          >
+            <Checkbox
+              checked={strictMatching}
+              onCheckedChange={handleStrictMatchingChange}
+            />
+            <span>Strict matching (less likely to close tabs with tracking parameters)</span>
+          </label>
+
           <ScrollArea className="h-[320px]">
             <div className="pr-4">
               {groups.map(group => (

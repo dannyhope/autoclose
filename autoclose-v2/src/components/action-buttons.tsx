@@ -78,6 +78,14 @@ export function ActionButtons({ onRefresh }: ActionButtonsProps) {
 
   return (
     <div className="flex flex-col gap-2">
+      <Button
+        onClick={handleCloseTabs}
+        disabled={totalCount === 0}
+        variant="default"
+        className="w-full"
+      >
+        {closeButtonText}
+      </Button>
       <div className="flex gap-2">
         <Button
           onClick={handleAddCurrent}
@@ -95,14 +103,6 @@ export function ActionButtons({ onRefresh }: ActionButtonsProps) {
           {addAllButtonText}
         </Button>
       </div>
-      <Button
-        onClick={handleCloseTabs}
-        disabled={totalCount === 0}
-        variant="default"
-        className="w-full"
-      >
-        {closeButtonText}
-      </Button>
     </div>
   )
 }
