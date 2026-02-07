@@ -122,10 +122,10 @@ export function normalizeUrlForDupeCheck(url: string): string {
 }
 
 /**
- * Parses clipboard text into an array of URLs.
+ * Parses text into an array of URLs.
  * Splits on newlines, trims whitespace, and filters empty lines.
  */
-export function parseClipboardText(text: string): string[] {
+export function parseUrlText(text: string): string[] {
 	return text
 		.split("\n")
 		.map(line => line.trim())

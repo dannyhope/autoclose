@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react"
-import { ChevronDown, Copy, Check, ClipboardPaste } from "lucide-react"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { ChevronDown, Download, Upload, Check } from "lucide-react"
 import { ScrollArea } from "~/components/ui/scroll-area"
 import { Checkbox } from "~/components/ui/checkbox"
 
@@ -11,7 +11,7 @@ import { DomainGroup } from "./domain-group"
 import { UrlListItem } from "./url-list-item"
 import { useSafeUrls } from "~/hooks/use-safe-urls"
 import { useListOpen, useStrictMatching } from "~/hooks/use-ui-settings"
-import { parseUrlParts, matchesUrlPattern, parseClipboardText } from "~/lib/url-utils"
+import { parseUrlParts, matchesUrlPattern, parseUrlText } from "~/lib/url-utils"
 
 interface UrlGroup {
   domain: string
@@ -23,7 +23,8 @@ export function UrlList() {
   const { isOpen, toggle } = useListOpen()
   const { enabled: strictMatching, setEnabled: setStrictMatching } = useStrictMatching()
   const [openTabs, setOpenTabs] = useState<string[]>([])
-  const [copied, setCopied] = useState(false)
+  const [exported, setExported] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch open tabs
   useEffect(() => {
@@ -78,36 +79,53 @@ export function UrlList() {
     await chrome.tabs.create({ url: target })
   }
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(safeUrls.join("\n"))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+  const handleExport = () => {
+    if (safeUrls.length === 0) return
+    const content = safeUrls.join("\n")
+    const blob = new Blob([content], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "autoclose-whitelist.txt"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    setExported(true)
+    setTimeout(() => setExported(false), 1500)
   }
 
-  const handlePaste = async () => {
-    try {
-      console.log("[paste] Reading clipboard…")
-      const text = await navigator.clipboard.readText()
-      console.log("[paste] Clipboard text length:", text.length, "chars")
-      console.log("[paste] First 200 chars:", text.slice(0, 200))
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
 
-      const urls = parseClipboardText(text)
-      console.log("[paste] Parsed", urls.length, "URLs from clipboard")
+    try {
+      console.log("[import] Reading file:", file.name)
+      const text = await file.text()
+      console.log("[import] File content length:", text.length, "chars")
+
+      const urls = parseUrlText(text)
+      console.log("[import] Parsed", urls.length, "URLs from file")
 
       if (urls.length > 0) {
-        console.log("[paste] Current safeUrls count:", safeUrls.length)
+        console.log("[import] Current safeUrls count:", safeUrls.length)
         const dupes = urls.filter(u => safeUrls.includes(u))
         const fresh = urls.filter(u => !safeUrls.includes(u))
-        console.log("[paste] Duplicates (skipped):", dupes.length, "| New:", fresh.length)
+        console.log("[import] Duplicates (skipped):", dupes.length, "| New:", fresh.length)
 
         await addUrls(urls)
         await sendMessage("update-badge")
-        console.log("[paste] Done. safeUrls count now:", safeUrls.length + fresh.length)
+        console.log("[import] Done. safeUrls count now:", safeUrls.length + fresh.length)
       } else {
-        console.log("[paste] No URLs found in clipboard text")
+        console.log("[import] No URLs found in file")
       }
     } catch (error) {
-      console.error("[paste] Error:", error)
+      console.error("[import] Error:", error)
+    }
+
+    // Reset input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
     }
   }
 
@@ -166,31 +184,38 @@ export function UrlList() {
           </ScrollArea>
 
           <div className="flex justify-end gap-2 pt-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.json"
+              onChange={handleImport}
+              className="hidden"
+            />
             <Button
               variant="outline"
               size="sm"
-              onClick={handlePaste}
+              onClick={() => fileInputRef.current?.click()}
               className="gap-1"
             >
-              <ClipboardPaste className="w-3 h-3" />
-              Paste
+              <Upload className="w-3 h-3" />
+              Import
             </Button>
             {safeUrls.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleCopy}
+                onClick={handleExport}
                 className="gap-1"
               >
-                {copied ? (
+                {exported ? (
                   <>
                     <Check className="w-3 h-3" />
-                    Copied!
+                    Exported!
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3" />
-                    Copy
+                    <Download className="w-3 h-3" />
+                    Export
                   </>
                 )}
               </Button>
