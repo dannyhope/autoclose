@@ -293,7 +293,7 @@ async function renderUrlList() {
     group.items.forEach((item) => refs.urlList.appendChild(createDomainEntry(item, urlToTabsMap.get(item.url) || [])));
   });
 
-  appendCopyPasteButtons();
+  appendImportExportButtons();
 }
 
 function groupByDomain(items) {
@@ -371,69 +371,92 @@ async function handleDeleteUrl(url) {
   await chrome.runtime.sendMessage({ action: 'updateBadge' });
 }
 
-function appendCopyPasteButtons() {
+function appendImportExportButtons() {
   const list = context.refs.urlList;
   if (!list) {
     return;
   }
-  let container = document.getElementById('copyListContainer');
+  let container = document.getElementById('importExportContainer');
   if (!container) {
     container = document.createElement('li');
-    container.id = 'copyListContainer';
+    container.id = 'importExportContainer';
     container.className = 'flex justify-end gap-2 pt-2';
 
-    const pasteButton = document.createElement('button');
-    pasteButton.id = 'pasteList';
-    pasteButton.title = 'Paste URLs from clipboard';
-    pasteButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
-    pasteButton.textContent = 'Paste';
-    pasteButton.addEventListener('click', () => handlePasteListClick(pasteButton));
-    container.appendChild(pasteButton);
+    const importButton = document.createElement('button');
+    importButton.id = 'importList';
+    importButton.title = 'Import URLs from file';
+    importButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
+    importButton.textContent = 'Import';
+    importButton.addEventListener('click', () => handleImportClick(importButton));
+    container.appendChild(importButton);
 
-    const copyButton = document.createElement('button');
-    copyButton.id = 'copyList';
-    copyButton.title = 'Copy your list to clipboard';
-    copyButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
-    copyButton.textContent = 'Copy';
-    copyButton.addEventListener('click', () => handleCopyListClick(copyButton));
-    container.appendChild(copyButton);
+    const exportButton = document.createElement('button');
+    exportButton.id = 'exportList';
+    exportButton.title = 'Export your list to file';
+    exportButton.className = 'bg-gray-200 text-gray-900 border border-gray-300 py-1 px-3 rounded hover:bg-gray-300 transition';
+    exportButton.textContent = 'Export';
+    exportButton.addEventListener('click', () => handleExportClick(exportButton));
+    container.appendChild(exportButton);
   }
   list.appendChild(container);
 }
 
-async function handleCopyListClick(button) {
+async function handleExportClick(button) {
   const safeUrls = await getSafeUrls();
-  const blob = safeUrls.map((url) => String(url)).join('\n');
-  try {
-    await navigator.clipboard.writeText(blob);
-    const current = button.textContent;
-    button.textContent = 'Copied!';
-    setTimeout(() => (button.textContent = current), 1500);
-  } catch (error) {
-    console.error('Error copying URL list:', error);
+  if (safeUrls.length === 0) {
+    return;
   }
+  const content = safeUrls.map((url) => String(url)).join('\n');
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'autoclose-whitelist.txt';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  const current = button.textContent;
+  button.textContent = 'Exported!';
+  setTimeout(() => (button.textContent = current), 1500);
 }
 
-async function handlePasteListClick(button) {
-  try {
-    const text = await navigator.clipboard.readText();
-    const urls = text
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
+async function handleImportClick(button) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.txt,.json';
+  input.style.display = 'none';
 
-    if (urls.length > 0) {
-      await addSafeUrls(urls);
-      await refreshUi();
-      await chrome.runtime.sendMessage({ action: 'updateBadge' });
-
-      const current = button.textContent;
-      button.textContent = 'Pasted!';
-      setTimeout(() => (button.textContent = current), 1500);
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    if (!file) {
+      return;
     }
-  } catch (error) {
-    console.error('Error pasting URL list:', error);
-  }
+    try {
+      const text = await file.text();
+      const urls = text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      if (urls.length > 0) {
+        await addSafeUrls(urls);
+        await refreshUi();
+        await chrome.runtime.sendMessage({ action: 'updateBadge' });
+
+        const current = button.textContent;
+        button.textContent = 'Imported!';
+        setTimeout(() => (button.textContent = current), 1500);
+      }
+    } catch (error) {
+      console.error('Error importing URL list:', error);
+    }
+    document.body.removeChild(input);
+  });
+
+  document.body.appendChild(input);
+  input.click();
 }
 
 async function updateMatchingTabsCount() {
