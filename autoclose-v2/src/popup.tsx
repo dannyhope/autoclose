@@ -21,7 +21,7 @@ function Popup() {
         <UrlList />
         <footer className="flex justify-between text-xs text-muted-foreground pt-2 border-t">
           <a
-            href="https://dannyhope.com"
+            href="https://dannyhope.co.uk"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground"
