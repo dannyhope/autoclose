@@ -31,8 +31,3 @@ archive/
 
 # Vibe coding conversations
 _vibing/
-
-# Plasmo build artifacts
-autoclose-v2/.plasmo/
-autoclose-v2/build/
-autoclose-v2/node_modules/

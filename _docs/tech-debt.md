@@ -30,5 +30,5 @@
 
 ### Documentation & Developer Experience
 1. **Dev-mode HUD**: Requirements call for a development mode with inline debug data + timestamp footer. Implement the toggle, surface state in the UI, and document how to enable it.
-2. **Docs for keyboard shortcuts & persistence**: Add a `/docs/shortcuts.md` (or README section) enumerating shortcuts, tooltips expectations, and saved-state behaviour.
+2. **Docs for keyboard shortcuts & persistence**: Add a `_docs/shortcuts.md` (or README section) enumerating shortcuts, tooltips expectations, and saved-state behaviour.
 3. **Contributor guide**: Provide a short “Contributing” section describing branching, formatting, and release steps to make the optimisation plan executable by others.

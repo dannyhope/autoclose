@@ -1,8 +1,8 @@
 # Ideas
 
-## Future Features (from archived projects)
-- **Closie integration**: Add ability to close tabs that are already bookmarked (bookmark-aware tab closing)
-- **Tabble integration**: Add window tiling functionality to separate tabs into individual windows arranged in a grid layout
+## Implemented features (from archived projects)
+- ~~**Closie integration**: Close tabs that are already bookmarked~~ — shipped as "Close bookmarked" checkbox
+- ~~**Tabble integration**: Window tiling to separate tabs into individual windows in a grid~~ — shipped as "Tile all tabs" button
 
 ## Frameworks & Libraries
 - **Alpine.js + minimal build step**: drop heavy custom DOM wiring in `popup.js` by adopting Alpine for declarative state while avoiding a full SPA rewrite.
@@ -21,6 +21,6 @@
 
 ## Process Improvements
 - **Automated lint/test before release**: add npm scripts + GitHub Action gate to prevent shipping inconsistent storage logic.
-- **Usability test playbook**: script tasks for think-aloud sessions (aligning with user-stories doc) and capture findings into `docs/ideas.md` for continuous UX evolution.
+- **Usability test playbook**: script tasks for think-aloud sessions (aligning with user-stories doc) and capture findings into `_docs/ideas.md` for continuous UX evolution.
 - **Dev mode/debug HUD**: implement a toggle that surfaces storage payloads, matcher decisions, and build timestamp directly in the popup to simplify issue screenshots.
 - **Visual consistency system**: establish systematic spacing/margin guidelines (e.g., matching padding between button areas and content zones) to maintain visual hierarchy across all UI components.
