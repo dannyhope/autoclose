@@ -1,4 +1,11 @@
-Autoclose: get it into the Chrome web store. Ask me questions until you have everything the Chrome Web Store might ask for
+# Publish Autoclose to the Chrome Web Store and share with Halil Kaan Taskin
+**Readiness:** auto-refined
+**Roadmap:** now
+**Deferred:** 2026-02-18
+
+Get Autoclose into the Chrome Web Store. Ask me questions until you have everything the Chrome Web Store might ask for.
+
+Once published, share the store listing with Halil Kaan Taskin.
 
 ## Auto-investigation
 **Investigated:** 2026-02-13
