@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Auto-close tabs – Full list</title>
   <link rel="stylesheet" href="styles/utilities.css" />
+  <style>
+    .danny-hope-attribution {
+      color: #999;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .danny-hope-attribution:hover {
+      color: #666;
+    }
+  </style>
 </head>
 <body class="p-4 bg-gray-100 text-gray-900 w-[480px]">
   <h1 class="text-lg font-semibold mb-2">Tabs that would be auto-closed</h1>
@@ -16,7 +27,7 @@
 
   <div class="mt-4 flex justify-between items-center text-[11px] text-gray-500 border-t border-gray-200 pt-2">
     <span>Green items are currently open. Grey items are not open.</span>
-    <span id="fullListTimestamp"></span>
+    <a href="https://dannyhope.co.uk" class="danny-hope-attribution" style="text-align: right;"><span id="fullListTimestamp" style="display: block; margin-bottom: 0.25rem;"></span>A Danny Hope product</a>
   </div>
 
   <script src="js/full-list.js"></script>

@@ -117,6 +117,17 @@
     .option-pressed .add-button-container {
       grid-column: 1 / -1;
     }
+
+    .danny-hope-attribution {
+      color: #999;
+      text-decoration: none;
+      font-size: 11px;
+      transition: color 0.2s ease;
+    }
+
+    .danny-hope-attribution:hover {
+      color: #666;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-sm text-gray-900 flex flex-col">
@@ -161,5 +172,8 @@
 
     <script type="module" src="js/popup.js"></script>
 
+    <div style="flex-grow: 1; display: flex; align-items: flex-end; justify-content: flex-end; padding: 0.5rem 0.75rem; font-size: 11px;">
+      <a href="https://dannyhope.co.uk" class="danny-hope-attribution">A Danny Hope product</a>
+    </div>
  </body>
 </html>
