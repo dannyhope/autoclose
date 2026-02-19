@@ -293,7 +293,7 @@ async function renderUrlList() {
     group.items.forEach((item) => refs.urlList.appendChild(createDomainEntry(item, urlToTabsMap.get(item.url) || [])));
   });
 
-  appendImportExportButtons();
+  // appendImportExportButtons();
 }
 
 function groupByDomain(items) {
