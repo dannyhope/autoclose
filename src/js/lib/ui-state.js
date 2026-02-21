@@ -2,6 +2,7 @@ import { getSetting, setSetting, STORAGE_KEYS } from './storage.js';
 
 export const UI_STATE_KEYS = {
   LIST_OPEN: 'listOpen',
+  NEVER_CLOSE_LIST_OPEN: 'neverCloseListOpen',
   ALWAYS_CLOSE_DUPES: 'alwaysCloseDupes',
   ALWAYS_CLOSE_BOOKMARKED: 'alwaysCloseBookmarked'
 };
@@ -9,6 +10,10 @@ export const UI_STATE_KEYS = {
 const UI_STATE_CONFIG = {
   [UI_STATE_KEYS.LIST_OPEN]: {
     storageKey: STORAGE_KEYS.LIST_TOGGLE_STATE,
+    defaultValue: false
+  },
+  [UI_STATE_KEYS.NEVER_CLOSE_LIST_OPEN]: {
+    storageKey: STORAGE_KEYS.NEVER_CLOSE_LIST_TOGGLE_STATE,
     defaultValue: false
   },
   [UI_STATE_KEYS.ALWAYS_CLOSE_DUPES]: {

@@ -1,5 +1,6 @@
-import { getSafeUrls, getSetting, STORAGE_KEYS } from './lib/storage.js';
+import { getSafeUrls, getNeverCloseUrls, getSetting, STORAGE_KEYS } from './lib/storage.js';
 import { findMatchingTabs, getDuplicateTabIds } from './lib/tab-actions.js';
+import { matchesUrlPattern } from './lib/url-utils.js';
 import { getAllBookmarks, findBookmarkedTabs, findBlankTabs } from './lib/bookmark-utils.js';
 import { tileAllTabs } from './lib/window-tiling.js';
 
@@ -38,9 +39,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Shared logic for getting tab IDs to close
+function isNeverCloseTab(tab, neverCloseUrls) {
+  if (!tab?.url || !neverCloseUrls.length) return false;
+  return neverCloseUrls.some((pattern) => matchesUrlPattern(tab.url, String(pattern || '')));
+}
+
 async function getTabIdsToClose() {
-  const [safeUrls, tabs] = await Promise.all([
+  const [safeUrls, neverCloseUrls, tabs] = await Promise.all([
     getSafeUrls(),
+    getNeverCloseUrls(),
     chrome.tabs.query({})
   ]);
   const alwaysCloseDupes = await getSetting(STORAGE_KEYS.ALWAYS_CLOSE_DUPES, false);
@@ -49,12 +56,18 @@ async function getTabIdsToClose() {
   const matchingTabs = findMatchingTabs(tabs, safeUrls);
   const tabIds = new Set(
     matchingTabs
+      .filter((tab) => !isNeverCloseTab(tab, neverCloseUrls))
       .map((tab) => tab.id)
       .filter((id) => typeof id === 'number')
   );
 
   if (alwaysCloseDupes) {
-    getDuplicateTabIds(tabs).forEach((id) => tabIds.add(id));
+    getDuplicateTabIds(tabs).forEach((id) => {
+      const tab = tabs.find((t) => t.id === id);
+      if (tab && !isNeverCloseTab(tab, neverCloseUrls)) {
+        tabIds.add(id);
+      }
+    });
   }
 
   if (alwaysCloseBookmarked) {
@@ -63,7 +76,9 @@ async function getTabIdsToClose() {
     const bookmarkedTabs = findBookmarkedTabs(tabs, bookmarkUrls);
     const blankTabs = findBlankTabs(tabs);
     [...bookmarkedTabs, ...blankTabs].forEach((tab) => {
-      if (typeof tab.id === 'number') tabIds.add(tab.id);
+      if (typeof tab.id === 'number' && !isNeverCloseTab(tab, neverCloseUrls)) {
+        tabIds.add(tab.id);
+      }
     });
   }
 

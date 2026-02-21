@@ -1,5 +1,5 @@
 # Hide Import/Export options for now
-**Readiness:** refined
+**Readiness:** built
 **Refined:** 2026-02-19
 **Roadmap:** now
 **Done when:** The Import and Export buttons no longer appear in the popup footer. The handler functions remain in the codebase, ready to uncomment.

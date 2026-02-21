@@ -1,10 +1,10 @@
-import { addSafeUrl, addSafeUrls, getSafeUrls, removeSafeUrl, STORAGE_KEYS } from './lib/storage.js';
+import { addSafeUrl, addSafeUrls, getSafeUrls, removeSafeUrl, addNeverCloseUrl, getNeverCloseUrls, removeNeverCloseUrl, STORAGE_KEYS } from './lib/storage.js';
 import { escapeHtml, matchesUrlPattern, parseUrlParts, toPatternFromTabUrl } from './lib/url-utils.js';
 import { findMatchingTabs, getDuplicateTabIds } from './lib/tab-actions.js';
 import { getUIState, setUIState, toggleUIState, UI_STATE_KEYS } from './lib/ui-state.js';
 import { getAllBookmarks, findBookmarkedTabs, findBlankTabs } from './lib/bookmark-utils.js';
 
-const POPUP_COLLAPSED_HEIGHT = 125;
+const POPUP_COLLAPSED_HEIGHT = 160;
 const POPUP_EXPANDED_HEIGHT = 600;
 
 const OPTION_TEXT = {
@@ -34,6 +34,15 @@ function updateToggleIndicator(isOpen) {
   indicator.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
 }
 
+function updateNeverCloseToggleIndicator(isOpen) {
+  const indicator = context.refs.toggleNeverCloseListLink?.querySelector('.toggle-indicator');
+  if (!indicator) {
+    return;
+  }
+  indicator.setAttribute('data-open', String(Boolean(isOpen)));
+  indicator.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+}
+
 function collectRefs() {
   context.refs = {
     addCurrentUrlButton: document.getElementById('addCurrentUrl'),
@@ -45,14 +54,18 @@ function collectRefs() {
     alwaysCloseBookmarkedCheckbox: document.getElementById('alwaysCloseBookmarked'),
     toggleListLink: document.getElementById('toggleList'),
     urlListSection: document.getElementById('urlListSection'),
-    tileTabsButton: document.getElementById('tileTabs')
+    tileTabsButton: document.getElementById('tileTabs'),
+    toggleNeverCloseListLink: document.getElementById('toggleNeverCloseList'),
+    neverCloseListSection: document.getElementById('neverCloseListSection'),
+    neverCloseList: document.getElementById('neverCloseList'),
+    addCurrentUrlToNeverCloseButton: document.getElementById('addCurrentUrlToNeverClose')
   };
 }
 
 function initPopupLayout() {
   scheduleExpandedHeightUpdate();
   window.addEventListener('resize', scheduleExpandedHeightUpdate);
-  setListCollapsedState(false);
+  setListCollapsedState();
 }
 
 function scheduleExpandedHeightUpdate() {
@@ -71,8 +84,10 @@ function debouncedRefresh(delay = 150) {
 
 function updateExpandedHeight() {
   const refs = context.refs;
-  const isHidden = refs.urlListSection?.classList.contains('hidden');
-  const height = isHidden ? POPUP_COLLAPSED_HEIGHT : POPUP_EXPANDED_HEIGHT;
+  const safeHidden = refs.urlListSection?.classList.contains('hidden');
+  const neverCloseHidden = refs.neverCloseListSection?.classList.contains('hidden');
+  const anyListOpen = !safeHidden || !neverCloseHidden;
+  const height = anyListOpen ? POPUP_EXPANDED_HEIGHT : POPUP_COLLAPSED_HEIGHT;
   setPopupHeight(height);
 }
 
@@ -80,8 +95,12 @@ function setPopupHeight(height) {
   document.documentElement.style.setProperty('--popup-expanded-height', `${height}px`);
 }
 
-function setListCollapsedState(isListOpen) {
-  const shouldCollapse = !isListOpen;
+function setListCollapsedState() {
+  const refs = context.refs;
+  const safeHidden = refs.urlListSection?.classList.contains('hidden');
+  const neverCloseHidden = refs.neverCloseListSection?.classList.contains('hidden');
+  const anyListOpen = !safeHidden || !neverCloseHidden;
+  const shouldCollapse = !anyListOpen;
   document.documentElement.classList.toggle('list-collapsed', shouldCollapse);
   document.body.classList.toggle('list-collapsed', shouldCollapse);
 }
@@ -91,7 +110,12 @@ async function restoreSettings() {
   const isOpen = await getUIState(UI_STATE_KEYS.LIST_OPEN);
   refs.urlListSection?.classList.toggle('hidden', !isOpen);
   updateToggleIndicator(isOpen);
-  setListCollapsedState(isOpen);
+
+  const isNeverCloseOpen = await getUIState(UI_STATE_KEYS.NEVER_CLOSE_LIST_OPEN);
+  refs.neverCloseListSection?.classList.toggle('hidden', !isNeverCloseOpen);
+  updateNeverCloseToggleIndicator(isNeverCloseOpen);
+
+  setListCollapsedState();
 
   const alwaysCloseDupes = await getUIState(UI_STATE_KEYS.ALWAYS_CLOSE_DUPES);
   if (refs.alwaysCloseDupesCheckbox) {
@@ -130,6 +154,12 @@ function wireEvents() {
   refs.addAllTabsButton?.addEventListener('click', () => handleAddAllTabs());
   refs.closeTabsButton?.addEventListener('click', () => handleCloseTabsClick());
   refs.tileTabsButton?.addEventListener('click', () => handleTileTabsClick());
+
+  refs.toggleNeverCloseListLink?.addEventListener('click', (event) => {
+    event.preventDefault();
+    toggleNeverCloseListSection();
+  });
+  refs.addCurrentUrlToNeverCloseButton?.addEventListener('click', () => handleAddCurrentUrlToNeverClose());
 
   document.addEventListener('keydown', handleOptionKeyDown);
   document.addEventListener('keyup', handleOptionKeyUp);
@@ -175,8 +205,21 @@ async function toggleListSection() {
   }
   const nextIsOpen = await toggleUIState(UI_STATE_KEYS.LIST_OPEN);
   section.classList.toggle('hidden', !nextIsOpen);
-  setListCollapsedState(nextIsOpen);
+  setListCollapsedState();
   updateToggleIndicator(nextIsOpen);
+  scheduleExpandedHeightUpdate();
+}
+
+async function toggleNeverCloseListSection() {
+  const refs = context.refs;
+  const section = refs.neverCloseListSection;
+  if (!section) {
+    return;
+  }
+  const nextIsOpen = await toggleUIState(UI_STATE_KEYS.NEVER_CLOSE_LIST_OPEN);
+  section.classList.toggle('hidden', !nextIsOpen);
+  setListCollapsedState();
+  updateNeverCloseToggleIndicator(nextIsOpen);
   scheduleExpandedHeightUpdate();
 }
 
@@ -186,6 +229,7 @@ async function handleAddCurrentUrl() {
     return;
   }
   const pattern = toPatternFromTabUrl(tab.url);
+  await removeNeverCloseUrl(pattern);
   await addSafeUrl(pattern);
   await refreshUi();
 
@@ -211,6 +255,18 @@ async function handleAddAllTabs() {
   await chrome.runtime.sendMessage({ action: 'updateBadge' });
 }
 
+async function handleAddCurrentUrlToNeverClose() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.url) {
+    return;
+  }
+  const pattern = toPatternFromTabUrl(tab.url);
+  await removeSafeUrl(pattern);
+  await addNeverCloseUrl(pattern);
+  await refreshUi();
+  await chrome.runtime.sendMessage({ action: 'updateBadge' });
+}
+
 async function handleCloseTabsClick() {
   await chrome.runtime.sendMessage({ action: 'closeTabs' });
   await clearHighlightedTabs();
@@ -219,32 +275,29 @@ async function handleCloseTabsClick() {
 
 async function updateAddCurrentUrlButtonState() {
   const refs = context.refs;
-  if (!refs.addCurrentUrlButton) {
-    return;
-  }
-
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.url) {
-    refs.addCurrentUrlButton.disabled = false;
-    refs.addCurrentUrlButton.classList.remove('opacity-50', 'cursor-not-allowed');
-    return;
+  const pattern = tab?.url ? toPatternFromTabUrl(tab.url) : null;
+
+  if (refs.addCurrentUrlButton) {
+    const safeUrls = pattern ? await getSafeUrls() : [];
+    const isInSafe = pattern && safeUrls.includes(pattern);
+    refs.addCurrentUrlButton.disabled = Boolean(isInSafe);
+    refs.addCurrentUrlButton.classList.toggle('opacity-50', Boolean(isInSafe));
+    refs.addCurrentUrlButton.classList.toggle('cursor-not-allowed', Boolean(isInSafe));
   }
 
-  const pattern = toPatternFromTabUrl(tab.url);
-  const safeUrls = await getSafeUrls();
-  const isAlreadyInList = safeUrls.includes(pattern);
-
-  if (isAlreadyInList) {
-    refs.addCurrentUrlButton.disabled = true;
-    refs.addCurrentUrlButton.classList.add('opacity-50', 'cursor-not-allowed');
-  } else {
-    refs.addCurrentUrlButton.disabled = false;
-    refs.addCurrentUrlButton.classList.remove('opacity-50', 'cursor-not-allowed');
+  if (refs.addCurrentUrlToNeverCloseButton) {
+    const neverCloseUrls = pattern ? await getNeverCloseUrls() : [];
+    const isInNeverClose = pattern && neverCloseUrls.includes(pattern);
+    refs.addCurrentUrlToNeverCloseButton.disabled = Boolean(isInNeverClose);
+    refs.addCurrentUrlToNeverCloseButton.classList.toggle('opacity-50', Boolean(isInNeverClose));
+    refs.addCurrentUrlToNeverCloseButton.classList.toggle('cursor-not-allowed', Boolean(isInNeverClose));
   }
 }
 
 async function refreshUi() {
   await renderUrlList();
+  await renderNeverCloseList();
   await updateMatchingTabsCount();
   await highlightMatchingTabs();
   await updateAddCurrentUrlButtonState();
@@ -337,6 +390,7 @@ function createDomainEntry(item, matchingTabs = []) {
     <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
       <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${parseUrlParts(item.url).displayPath}</span>
       <span class="flex-none w-4 text-center">${dots ? `<span class="open-tag">${dots}</span>` : ''}</span>
+      <button class="protect-btn flex-none px-1 text-xs text-gray-400 hover:text-red-600" data-url="${escapeHtml(item.url)}" title="Move to never-close list">&#x1F6E1;</button>
       <button class="delete-btn flex-none px-1" data-url="${escapeHtml(item.url)}" title="Remove this pattern">
         <img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" />
       </button>
@@ -344,9 +398,13 @@ function createDomainEntry(item, matchingTabs = []) {
   `;
 
   const urlText = li.querySelector('.url-text');
+  const protectBtn = li.querySelector('.protect-btn');
   const deleteBtn = li.querySelector('.delete-btn');
   if (urlText) {
     attachUrlInteractions(urlText, item.url);
+  }
+  if (protectBtn) {
+    protectBtn.addEventListener('click', () => handleMoveToNeverClose(item.url));
   }
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => handleDeleteUrl(item.url));
@@ -369,6 +427,72 @@ async function handleDeleteUrl(url) {
   await removeSafeUrl(url);
   await refreshUi();
   await chrome.runtime.sendMessage({ action: 'updateBadge' });
+}
+
+async function handleDeleteNeverCloseUrl(url) {
+  await removeNeverCloseUrl(url);
+  await refreshUi();
+  await chrome.runtime.sendMessage({ action: 'updateBadge' });
+}
+
+async function handleMoveToNeverClose(url) {
+  await removeSafeUrl(url);
+  await addNeverCloseUrl(url);
+  await refreshUi();
+  await chrome.runtime.sendMessage({ action: 'updateBadge' });
+}
+
+async function handleMoveToSafeClose(url) {
+  await removeNeverCloseUrl(url);
+  await addSafeUrl(url);
+  await refreshUi();
+  await chrome.runtime.sendMessage({ action: 'updateBadge' });
+}
+
+async function renderNeverCloseList() {
+  const refs = context.refs;
+  if (!refs.neverCloseList) {
+    return;
+  }
+
+  const neverCloseUrls = await getNeverCloseUrls();
+  const sorted = neverCloseUrls.slice().sort((a, b) => String(a).localeCompare(String(b)));
+  const items = sorted.map((url) => ({ url }));
+
+  const groups = groupByDomain(items);
+  refs.neverCloseList.innerHTML = '';
+
+  groups.forEach((group) => {
+    refs.neverCloseList.appendChild(createDomainHeader(group.domain));
+    group.items.forEach((item) => refs.neverCloseList.appendChild(createNeverCloseEntry(item)));
+  });
+}
+
+function createNeverCloseEntry(item) {
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
+      <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${parseUrlParts(item.url).displayPath}</span>
+      <button class="move-btn flex-none px-1 text-xs text-gray-400 hover:text-green-600" data-url="${escapeHtml(item.url)}" title="Move to safe-to-close list">&#x2713;</button>
+      <button class="delete-btn flex-none px-1" data-url="${escapeHtml(item.url)}" title="Remove this pattern">
+        <img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" />
+      </button>
+    </div>
+  `;
+
+  const urlText = li.querySelector('.url-text');
+  const moveBtn = li.querySelector('.move-btn');
+  const deleteBtn = li.querySelector('.delete-btn');
+  if (urlText) {
+    attachUrlInteractions(urlText, item.url);
+  }
+  if (moveBtn) {
+    moveBtn.addEventListener('click', () => handleMoveToSafeClose(item.url));
+  }
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => handleDeleteNeverCloseUrl(item.url));
+  }
+  return li;
 }
 
 function appendImportExportButtons() {
@@ -464,9 +588,11 @@ async function updateMatchingTabsCount() {
   if (!refs.closeTabsButton || !refs.closeTabsText) {
     return;
   }
-  const safeUrls = await getSafeUrls();
+  const [safeUrls, neverCloseUrls] = await Promise.all([getSafeUrls(), getNeverCloseUrls()]);
   const tabs = await chrome.tabs.query({});
-  const matches = findMatchingTabs(tabs, safeUrls);
+  const matches = findMatchingTabs(tabs, safeUrls).filter(
+    (tab) => !neverCloseUrls.some((p) => matchesUrlPattern(tab.url, String(p || '')))
+  );
   const count = matches.length;
 
   if (count === 0) {
@@ -481,9 +607,11 @@ async function updateMatchingTabsCount() {
 }
 
 async function highlightMatchingTabs() {
-  const safeUrls = await getSafeUrls();
+  const [safeUrls, neverCloseUrls] = await Promise.all([getSafeUrls(), getNeverCloseUrls()]);
   const tabs = await chrome.tabs.query({});
-  const matching = findMatchingTabs(tabs, safeUrls);
+  const matching = findMatchingTabs(tabs, safeUrls).filter(
+    (tab) => !neverCloseUrls.some((p) => matchesUrlPattern(tab.url, String(p || '')))
+  );
   const matchingIds = new Set(matching.map((tab) => tab.id).filter((id) => typeof id === 'number'));
   const highlighted = new Set(matchingIds);
 

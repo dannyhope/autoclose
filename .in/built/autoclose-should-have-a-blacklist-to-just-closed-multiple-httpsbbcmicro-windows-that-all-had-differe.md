@@ -1,5 +1,5 @@
 # Add "Never close" list and rename "Safe URLs" to "Safe to close"
-**Readiness:** refined
+**Readiness:** built
 **Refined:** 2026-02-17
 **Done when:** Two mutually exclusive URL lists exist — "Safe to close" and "Never close" — with UI for managing both. Tabs matching "Never close" patterns are never autoclosed, even if bookmarked or duplicated. Adding a URL to one list removes it from the other. The old "safe URLs" terminology is replaced throughout.
 

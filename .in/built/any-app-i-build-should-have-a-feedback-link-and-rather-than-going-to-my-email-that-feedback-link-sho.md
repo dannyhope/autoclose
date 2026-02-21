@@ -1,5 +1,5 @@
 # Add feedback link to GitHub Issues
-**Readiness:** refined
+**Readiness:** built
 **Refined:** 2026-02-17
 **Done when:** `popup.html` and `full-list.html` both have a "Feedback" link in the footer that opens `https://github.com/dannyhope/autoclose/issues/new` in a new tab. Plain static link, no pre-filling.
 

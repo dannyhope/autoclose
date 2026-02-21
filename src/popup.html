@@ -8,7 +8,7 @@
   <style>
     :root {
       --popup-expanded-height: 600px;
-      --popup-collapsed-height: 125px;
+      --popup-collapsed-height: 160px;
     }
 
     *,
@@ -44,8 +44,7 @@
       overflow: hidden;
     }
 
-    #urlListSection {
-      flex: 1;
+    .list-section {
       min-height: 0;
       display: flex;
       flex-direction: column;
@@ -53,16 +52,35 @@
       border-top: 1px solid #E6E7E8;
     }
 
-    #urlListSection.hidden {
+    #urlListSection {
+      flex: 1;
+    }
+
+    .list-section.hidden {
       display: none;
     }
 
-    #urlList {
+    .list-section ul {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
       padding: 0.5rem 1rem 0.5rem 1rem;
+    }
+
+    #neverCloseListSection {
+      flex: 1;
+    }
+
+    #neverCloseListSection .list-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.25rem 1rem;
+      background: #FEF2F2;
+      border-bottom: 1px solid #FECACA;
+      font-size: 11px;
+      color: #991B1B;
     }
 
     #closeTabs {
@@ -162,11 +180,21 @@
         </label>
       </div>
       <button id="addAllTabs" title="Add all tabs in this window to your list (hold Option/Alt to add and then close)" class="bg-gray-200 text-gray-900 border border-gray-300 py-2 px-4 rounded text-sm font-semibold hidden hover:bg-gray-300 transition">Add all tabs to list</button>
+      <div class="flex items-center gap-3 text-sm text-gray-900">
+        <button id="toggleNeverCloseList" type="button" title="Show/hide your never-close list" class="flex items-center gap-2">
+          <span class="toggle-indicator transform transition-transform duration-200">&#9660;</span>
+          <span class="leading-tight whitespace-nowrap">Never close websites</span>
+        </button>
+        <button id="addCurrentUrlToNeverClose" title="Protect the active tab from being autoclosed" class="text-xs text-red-700 hover:text-red-900 bg-red-50 border border-red-200 rounded px-2 py-0.5">+ Protect this tab</button>
+      </div>
     </div>
 
     <div class="flex-1 list-shell">
-      <div id="urlListSection" class="hidden h-full w-full bg-white">
+      <div id="urlListSection" class="list-section hidden h-full w-full bg-white">
         <ul id="urlList" class="list-none flex-1 py-2"></ul>
+      </div>
+      <div id="neverCloseListSection" class="list-section hidden w-full bg-white">
+        <ul id="neverCloseList" class="list-none flex-1 py-2"></ul>
       </div>
     </div>
 
