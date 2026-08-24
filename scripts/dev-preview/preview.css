@@ -1,0 +1,11 @@
+html {
+  background: #c7d0d4 !important;
+}
+
+@media screen {
+  html,
+  body {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}

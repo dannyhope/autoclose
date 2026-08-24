@@ -4,11 +4,11 @@
 >
 > **This file is the source of truth for how Autoclose should look.**
 
-Vanilla HTML/CSS popup (not shadcn). Quiet utility chrome that subordinates to the task. British English, sentence-case labels.
+Popup and full-list UI are **Vite + React + Tailwind + shadcn/ui** (Radix). Quiet utility chrome that subordinates to the task. British English, sentence-case labels. Background, content script, and `src/js/lib` stay vanilla modules.
 
 ## Palette and type
 
-Use Danny Hope Ltd Cool Grey and brand greens/reds from `~/.claude/skills/design-system/references/brand.md`. Tokens already in `src/styles/utilities.css` (`#F8F9FA` … `#1A272C`, `#D7FBC9`, `#006300`, `#C9003A`).
+Use Danny Hope Ltd Cool Grey and brand greens/reds from `~/.claude/skills/design-system/references/brand.md`. Tokens live in `src/index.css` as shadcn CSS variables (`#F8F9FA` … `#1A272C`, `#D7FBC9`, `#006300`, `#C9003A`).
 
 - Primary actions: muted grey buttons (`#F0F2F2` fill, `#C7D0D4` border, `#1A272C` text), not a vivid fill.
 - Destructive / protect: brand red (`#FFD1CF` fill, `#FF9594` edge, `#8C0028` text).
@@ -19,10 +19,11 @@ No decorative horizontal rules. Separate the lists from the controls with spacin
 
 ## Popup
 
-- Width **480px**. Height **600px** when a list is expanded, **160px** when both lists are collapsed. Height animates in ~200ms.
-- Compact vertical form: two-column grid of actions, then toggles, then accordion lists.
+- Width **480px**. Height **600px** when a list is expanded, **248px** when both lists are collapsed. Height animates in ~200ms.
+- Compact vertical form: two-column primary actions, then secondary actions (Tile all tabs; Add all tabs to list when expanded), then toggles, then accordion lists.
+- Accordion headers sit with their lists, not in the action grid. **Protect this tab** lives on the never-close header.
 - **Close *n* matching tabs** is the consequential action; disabled state uses Cool Grey (`#8C979C` on `#F0F2F2`).
-- Lists: white panel, grouped by domain with 16px favicon, ellipsis on long URLs, small delete control.
+- Lists fill the remaining popup height (footer does not grow). White panel, 16px favicon, ellipsis on long URLs, small delete control. Group by domain only when that domain has more than one pattern; a lone pattern is a single row. File URLs still share “This computer” when there is more than one.
 - Footer: muted “Feedback” (left) and “A Danny Hope product” (right) → https://dannyhope.co.uk. Cool Grey `#8C979C`, hover `#616E73`. 11px. No GitHub URLs.
 
 Store screenshots should show this real popup geometry (narrow card), not a marketing-page mock.
@@ -54,7 +55,7 @@ Functional only: popup height, accordion chevron rotate, button hover. Honour `p
 
 ## What to avoid
 
-- Plasmo/shadcn restyle of this vanilla popup
+- Plasmo rewrite, or a second component library beside shadcn
 - Title-case buttons
 - Prototype Panels / Flags in the end-user popup
 - Invented hex outside brand.md

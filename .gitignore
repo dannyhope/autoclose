@@ -26,6 +26,9 @@ yarn-error.log*
 *.swp
 *.swo
 
+# Build
+dist/
+
 # Archive folder
 archive/
 

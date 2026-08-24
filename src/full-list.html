@@ -1,38 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Auto-close tabs – Full list</title>
-  <link rel="stylesheet" href="styles/utilities.css" />
-  <style>
-    .danny-hope-attribution {
-      color: #8C979C;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .danny-hope-attribution:hover {
-      color: #616E73;
-    }
-  </style>
-</head>
-<body class="p-4 bg-gray-100 text-gray-900 w-[480px]">
-  <h1 class="text-lg font-semibold mb-2">Tabs that would be auto-closed</h1>
-  <p class="text-xs text-gray-600 mb-4">Showing every URL pattern in your list, and whether it is currently open.</p>
-
-  <div id="fullListStatus" class="text-xs text-gray-500 mb-2"></div>
-
-  <ul id="fullUrlList" class="list-none p-0 m-0 space-y-1 text-sm"></ul>
-
-  <div class="mt-4 flex justify-between items-center text-[11px] text-gray-500 border-t border-gray-200 pt-2">
-    <span>Green items are currently open. Grey items are not open.</span>
-    <div class="flex gap-3" style="text-align: right;">
-      <a href="https://dannyhope.co.uk/feedback" class="danny-hope-attribution" target="_blank" rel="noopener noreferrer">Feedback</a>
-      <a href="https://dannyhope.co.uk" class="danny-hope-attribution"><span id="fullListTimestamp" style="display: block; margin-bottom: 0.25rem;"></span>A Danny Hope product</a>
-    </div>
-  </div>
-
-  <script src="js/full-list.js"></script>
-</body>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auto-close tabs – Full list</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./full-list/main.tsx"></script>
+  </body>
 </html>

@@ -5,11 +5,21 @@ You tell it which tabs you often have open which you consider always safe to clo
 ## Architecture overview
 
 - **Manifest (MV3)**: `src/manifest.json` wires the popup UI, background service worker, and content script. Permissions: `tabs`, `storage`, `bookmarks`, `favicon`.
-- **Popup UI**: `src/popup.html` + `src/js/popup.js` render the list of safe patterns, expose buttons to add/close tabs, and persist UI settings via the centralised UI-state module.
+- **Popup UI**: React + shadcn in `src/popup/` (entry `src/popup.html`). List logic still uses `src/js/lib`.
 - **Background service worker**: `src/js/background.js` receives close requests, matches tabs against stored patterns, and enforces duplicate-closing and bookmark-closing rules.
-- **Full list page**: `src/full-list.html` + `src/js/full-list.js` provide a larger review surface with status indicators and timestamps.
+- **Full list page**: React + shadcn in `src/full-list/` (entry `src/full-list.html`).
 - **Content script**: `src/js/tab-warning.js` adds a visual warning prefix to tab titles when the popup is open, so you can see which tabs would be closed.
 - **Storage model**: Sync storage keys are `safeUrls` (array of strings), and UI settings managed through `src/js/lib/ui-state.js` (`alwaysCloseDupes`, `alwaysCloseBookmarked`, `listToggleState`). Storage access helpers plus schema versioning live in `src/js/lib/storage.js`.
+
+## Preview the popup
+
+For UI work you do **not** need `chrome://extensions`. From the repo:
+
+```bash
+npm run dev
+```
+
+That starts Vite with HMR at the preferred port in `.dev-port` (5200–5999). The popup opens in a normal Chrome tab with a fake `chrome.*` API so the lists render. Closing real tabs still needs the unpacked extension.
 
 ## Install / run locally
 
@@ -21,13 +31,13 @@ You can try this extension before it's in the Chrome Web Store:
 4. Select Window > Extensions
 5. Toggle dev mode on (the switch is in the top right of the Extensions page)
 6. Choose Load unpacked
-7. Pick the `src` folder in the autoclose directory
+7. Run `npm run build`, then pick the `dist` folder in the autoclose directory
 8. The icon should appear
 9. Right click the icon and select Pin
 
 ## Build, test, debug
 
-- **Build**: No bundler — HTML files reference scripts directly. Load the raw `src` folder as described above.
+- **Build**: `npm run build` writes the bundled popup plus `manifest.json`, `js/`, and `icons/` into `dist/`. Load that folder unpacked.
 - **Testing**: Manual for now. Use Chrome's Extensions panel > "service worker" link to view background logs, and DevTools within the popup to inspect storage payloads.
 - **Debug mode**: Planned toggle to surface storage state and build timestamps in the popup so screenshots carry context.
 

@@ -4,7 +4,7 @@ import { findMatchingTabs, getDuplicateTabIds } from './lib/tab-actions.js';
 import { getUIState, setUIState, toggleUIState, UI_STATE_KEYS } from './lib/ui-state.js';
 import { getAllBookmarks, findBookmarkedTabs, findBlankTabs } from './lib/bookmark-utils.js';
 
-const POPUP_COLLAPSED_HEIGHT = 160;
+const POPUP_COLLAPSED_HEIGHT = 248;
 const POPUP_EXPANDED_HEIGHT = 600;
 
 const OPTION_TEXT = {
@@ -103,6 +103,7 @@ function setListCollapsedState() {
   const shouldCollapse = !anyListOpen;
   document.documentElement.classList.toggle('list-collapsed', shouldCollapse);
   document.body.classList.toggle('list-collapsed', shouldCollapse);
+  refs.addAllTabsButton?.classList.toggle('hidden', shouldCollapse);
 }
 
 async function restoreSettings() {
@@ -342,7 +343,7 @@ async function renderUrlList() {
   refs.urlList.innerHTML = '';
 
   groups.forEach((group) => {
-    refs.urlList.appendChild(createDomainHeader(group.domain));
+    refs.urlList.appendChild(createDomainHeader(group.domain, group.sampleUrl));
     group.items.forEach((item) => refs.urlList.appendChild(createDomainEntry(item, urlToTabsMap.get(item.url) || [])));
   });
 
@@ -355,24 +356,43 @@ function groupByDomain(items) {
     const { hostname } = parseUrlParts(item.url);
     const key = String(hostname || item.url || '').toLowerCase();
     if (!map.has(key)) {
-      map.set(key, { domain: hostname || item.url, items: [] });
+      map.set(key, { domain: hostname || item.url, items: [], sampleUrl: item.url });
     }
     map.get(key).items.push(item);
   });
   return Array.from(map.values()).sort((a, b) => String(a.domain).localeCompare(String(b.domain)));
 }
 
-function createDomainHeader(domain) {
+function faviconPageUrl(domain, sampleUrl) {
+  const sample = String(sampleUrl || '');
+  if (/^[a-zA-Z][a-zA-Z+\-.]*:/.test(sample)) {
+    return sample;
+  }
+  if (sample.startsWith('/')) {
+    return `file://${sample}`;
+  }
+  if (domain && domain !== 'This computer') {
+    return `https://${domain}`;
+  }
+  return sample;
+}
+
+function createDomainHeader(domain, sampleUrl) {
   const header = document.createElement('li');
-  header.className = 'flex items-center gap-2 text-sm text-gray-500 mt-3 mb-0 px-1';
+  header.className = 'domain-header';
 
   const favicon = document.createElement('img');
-  favicon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=https://${encodeURIComponent(domain)}&size=16`;
+  const pageUrl = faviconPageUrl(domain, sampleUrl);
+  if (pageUrl) {
+    favicon.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=16`;
+  }
   favicon.alt = '';
-  favicon.className = 'w-4 h-4 flex-none';
-  favicon.title = domain;
+  favicon.addEventListener('error', () => {
+    favicon.hidden = true;
+  });
 
   const label = document.createElement('span');
+  label.className = 'domain-label';
   label.textContent = domain;
   label.title = domain;
 
@@ -384,11 +404,10 @@ function createDomainHeader(domain) {
 function createDomainEntry(item, matchingTabs = []) {
   const li = document.createElement('li');
   const count = matchingTabs.length;
-  // Only show 🔴 for the first instance, not for all duplicates
   const dots = count > 0 ? '🔴' : '';
   li.innerHTML = `
-    <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
-      <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${parseUrlParts(item.url).displayPath}</span>
+    <div class="url-row">
+      <span class="url-text url-label" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${escapeHtml(parseUrlParts(item.url).displayPath)}</span>
       <span class="flex-none w-4 text-center">${dots ? `<span class="open-tag">${dots}</span>` : ''}</span>
       <button class="protect-btn flex-none px-1 text-xs text-gray-400 hover:text-red-600" data-url="${escapeHtml(item.url)}" title="Move to never-close list">&#x1F6E1;</button>
       <button class="delete-btn flex-none px-1" data-url="${escapeHtml(item.url)}" title="Remove this pattern">
@@ -463,7 +482,7 @@ async function renderNeverCloseList() {
   refs.neverCloseList.innerHTML = '';
 
   groups.forEach((group) => {
-    refs.neverCloseList.appendChild(createDomainHeader(group.domain));
+    refs.neverCloseList.appendChild(createDomainHeader(group.domain, group.sampleUrl));
     group.items.forEach((item) => refs.neverCloseList.appendChild(createNeverCloseEntry(item)));
   });
 }
@@ -471,8 +490,8 @@ async function renderNeverCloseList() {
 function createNeverCloseEntry(item) {
   const li = document.createElement('li');
   li.innerHTML = `
-    <div class="url-item flex items-center gap-2 pl-8 pr-2 py-1.5">
-      <span class="url-text flex-1 truncate whitespace-nowrap" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${parseUrlParts(item.url).displayPath}</span>
+    <div class="url-row">
+      <span class="url-text url-label" role="button" tabindex="0" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.url)}">${escapeHtml(parseUrlParts(item.url).displayPath)}</span>
       <button class="move-btn flex-none px-1 text-xs text-gray-400 hover:text-green-600" data-url="${escapeHtml(item.url)}" title="Move to safe-to-close list">&#x2713;</button>
       <button class="delete-btn flex-none px-1" data-url="${escapeHtml(item.url)}" title="Remove this pattern">
         <img src="icons/bin-darker.svg" alt="Remove" class="w-4 h-4 mx-auto" />

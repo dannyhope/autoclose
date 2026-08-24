@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Auto-close tabs",
   "version": "1.0",
-  "description": "Manage a list of URLs that are safe to close and automatically close matching tabs",
+  "description": "Manage a list of URLs that are safe to close and close matching tabs on demand",
   "permissions": [
     "storage",
     "tabs",

@@ -28,7 +28,7 @@ There is no side panel.
 - Hold **Option/Alt** while adding to add and then close matching tabs.
 - **Add all tabs to list** (shown in the expanded chrome) adds every tab in the window; Option/Alt add-and-close applies here too.
 - Patterns match loosely (hostname/path prefixes and suffix-style entries). See `src/js/lib/url-utils.js`.
-- Removing a row drops that pattern. Lists group by domain and show a favicon via Chrome’s favicon API.
+- Removing a row drops that pattern. Lists group by domain only when that domain has more than one pattern; a lone pattern is a single row. File URLs still share “This computer” when there is more than one. Favicons come from Chrome’s favicon API.
 
 ### Never-close list
 
