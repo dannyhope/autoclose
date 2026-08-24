@@ -8,17 +8,29 @@ export function escapeHtml(str) {
 }
 
 export function parseUrlParts(urlStr) {
+  const raw = String(urlStr || '');
   try {
-    const parsed = new URL(urlStr);
+    const parsed = new URL(raw);
+    if (parsed.protocol === 'file:') {
+      const filePath = decodeURIComponent(parsed.pathname || '');
+      return { hostname: 'This computer', displayPath: filePath || raw };
+    }
+    if (!parsed.hostname) {
+      const scheme = parsed.protocol.replace(/:$/, '') || 'page';
+      return { hostname: scheme, displayPath: (parsed.pathname + parsed.search) || '/' };
+    }
     return {
       hostname: parsed.hostname,
-      displayPath: parsed.pathname + parsed.search || '/'
+      displayPath: (parsed.pathname + parsed.search) || '/'
     };
   } catch (error) {
-    const withoutProto = String(urlStr).replace(/^https?:\/\//, '');
+    if (raw.startsWith('/')) {
+      return { hostname: 'This computer', displayPath: raw };
+    }
+    const withoutProto = raw.replace(/^https?:\/\//i, '');
     const [hostname, ...rest] = withoutProto.split('/');
     const pathname = rest.length ? `/${rest.join('/')}` : '/';
-    return { hostname: hostname || urlStr, displayPath: pathname };
+    return { hostname: hostname || raw, displayPath: pathname };
   }
 }
 

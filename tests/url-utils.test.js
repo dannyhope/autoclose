@@ -61,6 +61,18 @@ describe('parseUrlParts', () => {
 		expect(result.hostname).toBeDefined();
 		expect(result.displayPath).toBeDefined();
 	});
+
+	it('groups file URLs under This computer', () => {
+		const result = parseUrlParts('file:///Users/dannyhope/Desktop/Tagsonomy/index.html');
+		expect(result.hostname).toBe('This computer');
+		expect(result.displayPath).toBe('/Users/dannyhope/Desktop/Tagsonomy/index.html');
+	});
+
+	it('groups path-only file patterns under This computer', () => {
+		const result = parseUrlParts('/Users/dannyhope/Desktop/Tagsonomy/index.html');
+		expect(result.hostname).toBe('This computer');
+		expect(result.displayPath).toBe('/Users/dannyhope/Desktop/Tagsonomy/index.html');
+	});
 });
 
 describe('matchesUrlPattern', () => {
