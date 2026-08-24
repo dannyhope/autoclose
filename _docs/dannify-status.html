@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dannify status — Autoclose</title>
+  <link rel="stylesheet" href="operator.css">
+  <style>
+    .panel { margin: 0 0 1rem; }
+    .panel h2 { margin-top: 0; }
+    .panel ul { margin: 0 0 0.85rem; padding-left: 1.2rem; }
+    .panel li { margin: 0 0 0.35rem; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Dannify status — Autoclose</h1>
+    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-24.</p>
+    <p class="hint">What still needs doing, then what’s already up to spec. Not product truth — that’s <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Detected: vanilla Manifest V3 Chrome extension (<code>src/manifest.json</code>). Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo / shadcn migration is not listed.</p>
+
+    <section class="panel">
+      <h2>Improvements</h2>
+      <h3>Should</h3>
+      <ul>
+        <li>Add <code>CLAUDE.md</code> with vanilla MV3 / load-unpacked development notes.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Already right</h2>
+      <ul>
+        <li><code>_docs/spec.md</code> covers purpose, surfaces, behaviour, and non-goals; accessibility level stated (none — no thought given)</li>
+        <li><code>_docs/design.md</code> covers popup, full-list, tab-warning titles, and toolbar icon</li>
+        <li>Public hrefs use hops: README zip → <code>https://dannyhope.co.uk/autoclose/source</code>; Feedback → <code>https://dannyhope.co.uk/feedback</code>; product/privacy page at <code>https://dannyhope.co.uk/autoclose/</code> (not live until dannyhope.co.uk is deployed)</li>
+        <li>Chrome Web Store <code>publish/</code> pack (<code>publish/index.html</code>, MV3 zip, listing copy, screenshots, permission justifications)</li>
+        <li>Loadable package is Manifest V3 (<code>action</code>, <code>background.service_worker</code>)</li>
+        <li>README opens with purpose, then load-unpacked steps (<code>src</code> folder)</li>
+        <li>“A Danny Hope product” in popup and full-list footers → https://dannyhope.co.uk</li>
+        <li>Popup lists are separated from the controls with spacing, not a hairline</li>
+        <li>Attribution greys are Cool Grey (<code>#8C979C</code> / hover <code>#616E73</code>)</li>
+        <li>Never-close list header uses brand reds (<code>#FFD1CF</code> / <code>#FF9594</code> / <code>#8C0028</code>)</li>
+        <li>Toolbar icon is a mid-grey close X on a transparent background (no coloured tile)</li>
+        <li>Usability-test scaffold (<code>_docs/usability-tasks.json</code> + <code>usability-test.html</code>)</li>
+        <li>Listed in Bombay <code>projects.json</code> as <code>autoclose</code></li>
+        <li><code>.in/</code> inbox exists</li>
+        <li><code>.gitignore</code> includes <code>_vibing/</code> and <code>.DS_Store</code>; <code>_vibing/</code> directory exists</li>
+        <li><code>autoclose.code-workspace</code> exists</li>
+        <li>Extra <code>_docs/</code> with real content</li>
+        <li>User-facing copy is already British English</li>
+        <li>No appearance / theme picker</li>
+        <li>Existing vanilla popup kept (not listed for Plasmo or shadcn migration)</li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>
