@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>Autoclose store screenshot</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { background: #343F44; }
+    .chrome {
+      height: 72px;
+      background: #1A272C;
+      color: #E6E7E8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; background: #616E73; }
+    .omnibox {
+      flex: 1;
+      height: 32px;
+      border-radius: 16px;
+      background: #343F44;
+      color: #A5B0B5;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+    .stage {
+      height: 728px;
+      background: #F0F2F2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 40px;
+    }
+    .popup {
+      width: 480px;
+      background: #F0F2F2;
+      color: #1A272C;
+      border-radius: 8px;
+      box-shadow: 0 16px 40px rgba(26, 39, 44, 0.28);
+      overflow: hidden;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 16px 8px; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 16px;
+      border-radius: 4px;
+      border: 1px solid #C7D0D4;
+      background: #E6E7E8;
+      color: #1A272C;
+    }
+    .close { background: #E6E7E8; }
+    .row { display: flex; gap: 12px; padding: 0 16px 12px; font-size: 14px; align-items: center; }
+    .row label { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .list {
+      background: #fff;
+      min-height: 220px;
+      padding: 8px 16px 16px;
+    }
+    .domain { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; margin: 10px 0 4px; }
+    .dot { width: 16px; height: 16px; border-radius: 3px; background: #C7D0D4; }
+    .item { font-size: 13px; color: #4B565A; padding: 4px 0 4px 24px; }
+    .foot { display: flex; justify-content: space-between; padding: 8px 12px; font-size: 11px; color: #8C979C; }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="omnibox">news.bbc.co.uk/sport</div>
+  </div>
+  <div class="stage">
+    <div class="popup">
+      <div class="grid">
+        <button type="button">Add tab to list</button>
+        <button type="button" class="close">Close 12 matching tabs</button>
+      </div>
+      <div class="row">
+        <span>Safe to close websites</span>
+        <button type="button">Tile all tabs</button>
+      </div>
+      <div class="row">
+        <label><input type="checkbox"> Close bookmarked</label>
+        <label><input type="checkbox" checked> Deduplicate tabs</label>
+      </div>
+      <div class="list">
+        <div class="domain"><span class="dot"></span> bbc.co.uk</div>
+        <div class="item">/sport</div>
+        <div class="item">/news</div>
+        <div class="domain"><span class="dot"></span> mail.google.com</div>
+        <div class="item">/</div>
+      </div>
+      <div class="foot">
+        <span>Feedback</span>
+        <span>A Danny Hope product</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
