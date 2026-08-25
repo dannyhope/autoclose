@@ -15,40 +15,45 @@
 <body>
   <div class="page">
     <h1>Dannify status — Autoclose</h1>
-    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-24.</p>
-    <p class="hint">What still needs doing, then what’s already up to spec. Not product truth — that’s <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Detected: vanilla Manifest V3 Chrome extension (<code>src/manifest.json</code>). Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo / shadcn migration is not listed.</p>
+    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-25.</p>
+    <p class="hint">What still needs doing, then what’s already up to spec. Product truth is <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Current KPI is <code>_docs/now.md</code>. Detected: Manifest V3 Chrome extension (<code>src/manifest.json</code>) with Vite + React + Tailwind + shadcn popup/full-list; vanilla service worker, content script, and <code>src/js/lib</code>. Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo migration is not listed.</p>
 
     <section class="panel">
       <h2>Improvements</h2>
+      <h3>Must</h3>
+      <ul>
+        <li>Update <code>_docs/spec.md</code> non-goals: it still forbids a “Plasmo/shadcn rewrite of the existing vanilla popup”, but the popup is already Vite + React + shadcn — living docs must match the shipped stack.</li>
+      </ul>
       <h3>Should</h3>
       <ul>
-        <li>Add <code>CLAUDE.md</code> with vanilla MV3 / load-unpacked development notes.</li>
+        <li>Add <code>CLAUDE.md</code> with MV3 / load-unpacked / <code>npm run dev</code> live-preview development notes (Vite React stack, not vanilla popup).</li>
+        <li>Add <code>_docs/now.md</code> with a current KPI (ask via <code>/goal</code>; do not invent one).</li>
+        <li>Fix attribution credit contrast: footer uses <code>#8C979C</code> (Cool Grey 70); use Cool Grey 60 <code>#616E73</code> (and hover to foreground). Align <code>_docs/design.md</code>.</li>
+        <li>Add Undo after removing a safe/never-close pattern (toast ~8s) — delete is a simple reversible action.</li>
+        <li>Switch product typeface from IBM Plex Sans to Museo Sans (brand face; <code>src/index.css</code> / <code>src/styles/utilities.css</code> + <code>_docs/design.md</code>).</li>
       </ul>
     </section>
 
     <section class="panel">
       <h2>Already right</h2>
       <ul>
-        <li><code>_docs/spec.md</code> covers purpose, surfaces, behaviour, and non-goals; accessibility level stated (none — no thought given)</li>
-        <li><code>_docs/design.md</code> covers popup, full-list, tab-warning titles, and toolbar icon</li>
-        <li>Public hrefs use hops: README zip → <code>https://dannyhope.co.uk/autoclose/source</code>; Feedback → <code>https://dannyhope.co.uk/feedback</code>; product/privacy page at <code>https://dannyhope.co.uk/autoclose/</code> (not live until dannyhope.co.uk is deployed)</li>
-        <li>Chrome Web Store <code>publish/</code> pack (<code>publish/index.html</code>, MV3 zip, listing copy, screenshots, permission justifications)</li>
+        <li><code>_docs/spec.md</code> covers purpose, surfaces, behaviour, permissions, and accessibility level (none — no thought given)</li>
+        <li><code>_docs/design.md</code> covers popup, full-list, tab-warning titles, toolbar icon, and shadcn stack</li>
+        <li>README opens with purpose, then load-unpacked steps (<code>npm run build</code> → <code>dist</code>) and live preview via <code>npm run dev</code></li>
+        <li>“A Danny Hope product” in popup/full-list footer → https://dannyhope.co.uk; Feedback → https://dannyhope.co.uk/feedback</li>
+        <li>Public hrefs use hops (README zip → <code>https://dannyhope.co.uk/autoclose/source</code>)</li>
+        <li>Chrome Web Store <code>publish/</code> pack with <code>operator.css</code>, listing copy, and permission justifications</li>
         <li>Loadable package is Manifest V3 (<code>action</code>, <code>background.service_worker</code>)</li>
-        <li>README opens with purpose, then load-unpacked steps (<code>src</code> folder)</li>
-        <li>“A Danny Hope product” in popup and full-list footers → https://dannyhope.co.uk</li>
-        <li>Popup lists are separated from the controls with spacing, not a hairline</li>
-        <li>Attribution greys are Cool Grey (<code>#8C979C</code> / hover <code>#616E73</code>)</li>
-        <li>Never-close list header uses brand reds (<code>#FFD1CF</code> / <code>#FF9594</code> / <code>#8C0028</code>)</li>
-        <li>Toolbar icon is a mid-grey close X on a transparent background (no coloured tile)</li>
+        <li>Popup/options live preview: Vite HMR opens <code>/popup.html</code> with chrome shim (preferred port from <code>.dev-port</code> + <code>scripts/resolve-dev-port.sh</code>)</li>
+        <li>Product UI is on shadcn; palette tokens are brand Cool Greys / greens / reds</li>
+        <li>No appearance / theme picker (OS <code>prefers-color-scheme</code> only)</li>
+        <li>Toolbar icon is a mid-grey close X on transparent (no coloured tile)</li>
         <li>Usability-test scaffold (<code>_docs/usability-tasks.json</code> + <code>usability-test.html</code>)</li>
         <li>Listed in Bombay <code>projects.json</code> as <code>autoclose</code></li>
-        <li><code>.in/</code> inbox exists</li>
-        <li><code>.gitignore</code> includes <code>_vibing/</code> and <code>.DS_Store</code>; <code>_vibing/</code> directory exists</li>
+        <li><code>.in/</code> inbox; <code>.gitignore</code> includes <code>_vibing/</code> and <code>.DS_Store</code>; <code>_vibing/</code> exists</li>
         <li><code>autoclose.code-workspace</code> exists</li>
-        <li>Extra <code>_docs/</code> with real content</li>
-        <li>User-facing copy is already British English</li>
-        <li>No appearance / theme picker</li>
-        <li>Existing vanilla popup kept (not listed for Plasmo or shadcn migration)</li>
+        <li>Extra <code>_docs/</code> with real content; British English user-facing copy</li>
+        <li>No Plasmo migration listed (correct for an existing non-Plasmo repo)</li>
       </ul>
     </section>
   </div>
