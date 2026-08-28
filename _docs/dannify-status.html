@@ -15,7 +15,7 @@
 <body>
   <div class="page">
     <h1>Dannify status — Autoclose</h1>
-    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-25.</p>
+    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-28.</p>
     <p class="hint">What still needs doing, then what’s already up to spec. Product truth is <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Current KPI is <code>_docs/now.md</code>. Detected: Manifest V3 Chrome extension (<code>src/manifest.json</code>) with Vite + React + Tailwind + shadcn popup/full-list; vanilla service worker, content script, and <code>src/js/lib</code>. Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo migration is not listed.</p>
 
     <section class="panel">
@@ -23,6 +23,7 @@
       <h3>Must</h3>
       <ul>
         <li>Update <code>_docs/spec.md</code> non-goals: it still forbids a “Plasmo/shadcn rewrite of the existing vanilla popup”, but the popup is already Vite + React + shadcn — living docs must match the shipped stack.</li>
+        <li>Add <code>scripts/ensure-local-domain.sh</code> and map <code>autoclose.test</code> to loopback before local development starts; the required project hostname is currently absent.</li>
       </ul>
       <h3>Should</h3>
       <ul>
@@ -45,6 +46,8 @@
         <li>Chrome Web Store <code>publish/</code> pack with <code>operator.css</code>, listing copy, and permission justifications</li>
         <li>Loadable package is Manifest V3 (<code>action</code>, <code>background.service_worker</code>)</li>
         <li>Popup/options live preview: Vite HMR opens <code>/popup.html</code> with chrome shim (preferred port from <code>.dev-port</code> + <code>scripts/resolve-dev-port.sh</code>)</li>
+        <li><code>.dev-port</code> and strict Vite port resolution are configured</li>
+        <li><code>operator.css</code> is present for the publish helper; no decorative page rule was found in the audited product UI</li>
         <li>Product UI is on shadcn; palette tokens are brand Cool Greys / greens / reds</li>
         <li>No appearance / theme picker (OS <code>prefers-color-scheme</code> only)</li>
         <li>Toolbar icon is a mid-grey close X on transparent (no coloured tile)</li>
