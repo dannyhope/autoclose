@@ -1,4 +1,5 @@
 # Publish Auto-close tabs to Chrome Web Store
-**Readiness:** wip
+**Readiness:** refined
 **Roadmap:** now
 **Helper:** publish/index.html
+**Type:** manual
