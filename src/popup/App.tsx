@@ -251,34 +251,48 @@ export function App() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 flex-col gap-3 px-4 pt-4 pb-3">
-        <div className={cn('grid gap-3', optionPressed ? 'grid-cols-1' : 'grid-cols-2')}>
-          <Button
-            type="button"
-            className="h-auto w-full py-3 font-semibold"
-            title="Add the active tab to your list (hold Option/Alt to add and then close)"
-            disabled={currentInSafe}
-            onClick={handleAddCurrent}
-          >
-            {optionPressed ? OPTION_TEXT.addSingleAlt : OPTION_TEXT.addSingle}
-          </Button>
-          {optionPressed ? null : (
+      <div className="flex shrink-0 flex-col gap-6 px-4 pt-4 pb-3">
+        <div className="flex flex-col gap-2">
+          {optionPressed ? (
             <Button
               type="button"
-              className="h-auto w-full py-3 font-semibold disabled:bg-[#F0F2F2] disabled:text-[#8C979C]"
-              title="Close all tabs that match any pattern in your list"
-              disabled={matchingCount === 0}
-              onClick={handleCloseTabs}
+              className="w-full"
+              title="Add the active tab to your list (hold Option/Alt to add and then close)"
+              disabled={currentInSafe}
+              onClick={handleAddCurrent}
             >
-              {closeLabel}
+              {OPTION_TEXT.addSingleAlt}
             </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                className="w-full disabled:bg-muted disabled:text-muted-foreground"
+                title="Close all tabs that match any pattern in your list"
+                disabled={matchingCount === 0}
+                onClick={handleCloseTabs}
+              >
+                {closeLabel}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                title="Add the active tab to your list (hold Option/Alt to add and then close)"
+                disabled={currentInSafe}
+                onClick={handleAddCurrent}
+              >
+                {OPTION_TEXT.addSingle}
+              </Button>
+            </>
           )}
         </div>
         <div className={cn('grid gap-3', anyListOpen ? 'grid-cols-2' : 'grid-cols-1')}>
           <Button
             type="button"
             size="sm"
-            className={cn('w-full font-semibold', tileConfirm && 'bg-orange-200')}
+            variant="outline"
+            className={cn('w-full', tileConfirm && 'ring-2 ring-ring')}
             title="Separate each tab into its own window and tile them in a grid"
             onClick={handleTileTabs}
           >
@@ -287,8 +301,9 @@ export function App() {
           {anyListOpen ? (
             <Button
               type="button"
+              variant="outline"
               size="sm"
-              className="w-full font-semibold"
+              className="w-full"
               title="Add all tabs in this window to your list (hold Option/Alt to add and then close)"
               onClick={handleAddAll}
             >

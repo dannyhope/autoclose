@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
-import { Check, ChevronDown, Shield } from 'lucide-react';
+import { Check, ChevronDown, Shield, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { faviconPageUrl, faviconSrc } from '@/lib/favicon';
 import { labelForUrl, openUrlInNewTab, type UrlGroup, type UrlItem } from '@/lib/url-groups';
-import binIcon from '../icons/bin-darker.svg?url';
 
 type UrlListProps = {
   title: string;
@@ -55,7 +54,7 @@ function RowActions({ url, isOpen, onDelete, onMove, moveTitle, moveIcon }: RowA
         title="Remove this pattern"
         onClick={() => onDelete(url)}
       >
-        <img src={binIcon} alt="Remove" className="size-4" />
+        <Trash2 aria-hidden="true" className="size-4" />
       </Button>
     </>
   );

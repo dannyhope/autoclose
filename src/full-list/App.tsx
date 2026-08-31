@@ -51,8 +51,8 @@ export function FullListApp() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-screen w-[480px] flex-col bg-background p-4 text-sm text-foreground">
-      <h1 className="mb-2 text-lg font-semibold">Tabs that would be auto-closed</h1>
+    <div className="mx-auto flex min-h-screen w-[400px] flex-col bg-background p-4 text-sm text-foreground">
+      <h1 className="mb-2 text-lg font-medium">Tabs that would be auto-closed</h1>
       <p className="mb-4 text-xs text-muted-foreground">
         Showing every URL pattern in your list, and whether it is currently open.
       </p>
@@ -62,7 +62,7 @@ export function FullListApp() {
           <li
             key={item.url}
             className={`flex items-center justify-between rounded px-2 py-1 ${
-              item.isOpen ? 'bg-[#D7FBC9] text-[#006300]' : 'bg-muted text-muted-foreground'
+              item.isOpen ? 'bg-muted text-foreground' : 'bg-background text-muted-foreground'
             }`}
           >
             <span className="mr-2 truncate">{item.display}</span>
@@ -71,7 +71,7 @@ export function FullListApp() {
         ))}
       </ul>
       <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>Green items are currently open. Grey items are not open.</span>
+        <span>Open status is shown in the label.</span>
         <span>{stamp}</span>
       </div>
       <PopupFooter />

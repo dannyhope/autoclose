@@ -1,6 +1,6 @@
 # Autoclose — Design
 
-> Living document. Update whenever visual design changes. Last updated: 2026-08-24.
+> Living document. Update whenever visual design changes. Last updated: 2026-08-31.
 >
 > **This file is the source of truth for how Autoclose should look.**
 
@@ -8,30 +8,52 @@ Popup and full-list UI are **Vite + React + Tailwind + shadcn/ui** (Radix). Quie
 
 ## Palette and type
 
-Use Danny Hope Ltd Cool Grey and brand greens/reds from `~/.claude/skills/design-system/references/brand.md`. Tokens live in `src/index.css` as shadcn CSS variables (`#F8F9FA` … `#1A272C`, `#D7FBC9`, `#006300`, `#C9003A`).
+Autoclose uses the browser-extension token set from
+`~/.claude/skills/design-system/references/brand.md`: near-white and soft grey
+in light mode, near-black and dark grey in dark mode, plus accent `#C9003A`.
+No green status fills, multi-hue colours, gradients, glow, or invented hex
+values.
 
-- Primary actions: muted grey buttons (`#F0F2F2` fill, `#C7D0D4` border, `#1A272C` text), not a vivid fill.
-- Destructive / protect: brand red (`#FFD1CF` fill, `#FF9594` edge, `#8C0028` text).
 - Follow OS light/dark (`prefers-color-scheme`). No appearance picker.
-- Type: currently IBM Plex Sans with system fallbacks. Museo Sans is the brand face for new product UI; do not introduce a second competing face in one change.
+- Type: system stack only (`-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`), 14–15px body text, regular and medium weights only.
 
 No decorative horizontal rules. Separate the lists from the controls with spacing, not a full-width hairline.
 
+## Local development
+
+Run `npm run dev` to view the app at `http://autoclose.local:<port>/`. The port
+is selected from the committed `.dev-port`, falling forward when that port is
+busy; the dev command ensures `autoclose.local` resolves to `127.0.0.1`.
+
 ## Popup
 
-- Width **480px**. Height **600px** when a list is expanded, **248px** when both lists are collapsed. Height animates in ~200ms.
-- Compact vertical form: two-column primary actions, then secondary actions (Tile all tabs; Add all tabs to list when expanded), then toggles, then accordion lists.
+- Width **400px** (within the 400–420px standard). Height is content-sized
+  for the current job; there is no fixed 600px wall.
+- Use an 8px spacing grid, 12–16px button padding, and 24–32px between
+  sections. The hierarchy is one primary action, secondary actions, toggles,
+  then accordion lists.
 - Accordion headers sit with their lists, not in the action grid. **Protect this tab** lives on the never-close header.
-- **Close *n* matching tabs** is the consequential action; disabled state uses Cool Grey (`#8C979C` on `#F0F2F2`).
-- Lists fill the remaining popup height (footer does not grow). White panel, 16px favicon, ellipsis on long URLs, small delete control. Group by domain only when that domain has more than one pattern; a lone pattern is a single row. File URLs still share “This computer” when there is more than one.
-- Footer: muted “Feedback” (left) and “A Danny Hope product” (right) → https://dannyhope.co.uk. Cool Grey `#8C979C`, hover `#616E73`. 11px. No GitHub URLs.
+- **Close *n* matching tabs** is the consequential action; disabled state uses
+  the muted token on the soft-grey surface.
+- Lists fill the remaining popup height (footer does not grow). Near-white
+  panel, 16px favicon, ellipsis on long URLs, small delete control. Group by
+  domain only when that domain has more than one pattern; a lone pattern is a
+  single row. File URLs still share “This computer” when there is more than
+  one.
+- Footer: muted “Feedback” (left) and “A Danny Hope product” (right) →
+  https://dannyhope.co.uk. Use the muted token at 11px with no extra opacity.
+  No GitHub URLs.
+
+Settings do not live in the popup. If settings are added, they belong in
+`options.html`.
 
 Store screenshots should show this real popup geometry (narrow card), not a marketing-page mock.
 
 ## Full-list page
 
-- Same utility look and 480px-ish column when opened as an extension page.
-- Status line for last refresh. Open patterns read as green; not-open as grey.
+- Same utility look and a 400–420px reading column when opened as an extension page.
+- Status line for last refresh. Open and not-open states use neutral surfaces
+  and explicit text; the page does not introduce a second status colour.
 - Same footer attribution as the popup.
 
 ## Tab-warning overlay
@@ -49,9 +71,14 @@ The toolbar mark is a **mid-grey close X** (`#7B858A`) on a **transparent** canv
 | SVG | `src/icons/icon.svg` source |
 | 128 store | `publish/icon-128.png` — 24-bit PNG, **no alpha**, flatten onto white |
 
-## Motion
+## Isolation and motion
 
-Functional only: popup height, accordion chevron rotate, button hover. Honour `prefers-reduced-motion: reduce` with instant height/transform.
+- Autoclose currently injects only document-title prefixes. Any future
+  injected UI must mount in a shadow root, match host density, and respect the
+  OS colour scheme.
+- Motion is functional only: popup height, accordion chevron rotation, and
+  button hover/pressed feedback. Honour `prefers-reduced-motion: reduce` with
+  instant height/transform. Do not show a spinner on first paint.
 
 ## What to avoid
 
@@ -59,4 +86,6 @@ Functional only: popup height, accordion chevron rotate, button hover. Honour `p
 - Title-case buttons
 - Prototype Panels / Flags in the end-user popup
 - Invented hex outside brand.md
+- Fixed 600px popup walls, decorative rules, gradients, glow, or multiple
+  component libraries
 - Public GitHub or Gmail hrefs in the footer

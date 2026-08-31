@@ -1,42 +1,42 @@
 :root {
-  --gray-50: #F8F9FA;
-  --gray-100: #F0F2F2;
-  --gray-200: #E6E7E8;
-  --gray-300: #C7D0D4;
-  --gray-500: #7B858A;
-  --gray-600: #616E73;
-  --gray-900: #1A272C;
-  --green-50: #D7FBC9;
-  --green-700: #006300;
-  --red-600: #C9003A;
+  color-scheme: light dark;
+  --extension-background: #F8F9FA;
+  --extension-surface: #E6E7E8;
+  --extension-foreground: #1A272C;
+  --extension-muted: #343F44;
+  --extension-accent: #C9003A;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --extension-background: #1A272C;
+    --extension-surface: #343F44;
+    --extension-foreground: #F8F9FA;
+    --extension-muted: #E6E7E8;
+  }
 }
 
 body, button, input, a {
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: var(--gray-900);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--extension-foreground);
 }
 
-.bg-gray-50 { background-color: var(--gray-50); }
-.bg-gray-100 { background-color: var(--gray-100); }
-.bg-gray-200 { background-color: var(--gray-200); }
-.bg-gray-300 { background-color: var(--gray-300); }
-.bg-white { background-color: #ffffff; }
-.bg-green-50 { background-color: var(--green-50); }
+.bg-gray-50 { background-color: var(--extension-background); }
+.bg-gray-100,
+.bg-gray-200,
+.bg-gray-300 { background-color: var(--extension-surface); }
 
-.text-gray-400 { color: #8C979C; }
-.text-gray-500 { color: var(--gray-500); }
-.text-gray-600 { color: var(--gray-600); }
-.text-gray-900 { color: var(--gray-900); }
-.opacity-50 { opacity: 0.5; }
+.text-gray-400,
+.text-gray-500,
+.text-gray-600 { color: var(--extension-muted); }
+.text-gray-900 { color: var(--extension-foreground); }
 .cursor-not-allowed { cursor: not-allowed; }
 .min-w-0 { min-width: 0; }
-.text-green-700 { color: var(--green-700); }
 .text-xs { font-size: 0.75rem; }
 .text-sm { font-size: 0.875rem; }
 .text-lg { font-size: 1.125rem; }
 .text-\[11px\] { font-size: 11px; }
 
-.font-semibold { font-weight: 600; }
 .font-medium { font-weight: 500; }
 
 .flex { display: flex; }
@@ -54,7 +54,7 @@ body, button, input, a {
 .h-4 { height: 1rem; }
 .w-full { width: 100%; }
 .h-full { height: 100%; }
-.w-\[480px\] { width: 480px; }
+.w-\[400px\] { width: 400px; }
 
 .list-none { list-style: none; padding: 0; margin: 0; }
 .space-y-1 > * + * { margin-top: 0.25rem; }
@@ -87,10 +87,9 @@ body, button, input, a {
 .pr-0 { padding-right: 0; }
 .pr-2 { padding-right: 0.5rem; }
 
-.border { border: 1px solid var(--gray-300); }
-.border-gray-200 { border-color: var(--gray-200); }
-.border-gray-300 { border-color: var(--gray-300); }
-.border-t { border-top: 1px solid var(--gray-200); }
+.border { border: 1px solid var(--extension-surface); }
+.border-gray-200,
+.border-gray-300 { border-color: var(--extension-surface); }
 .rounded { border-radius: 0.375rem; }
 
 .hidden { display: none; }
@@ -100,17 +99,22 @@ body, button, input, a {
 .duration-200 { transition-duration: 0.2s; }
 .transform { display: inline-block; }
 
-.hover\:bg-gray-300:hover { background-color: var(--gray-300); }
-.hover\:text-red-600:hover { color: var(--red-600); }
-.hover\:text-green-600:hover { color: var(--green-700); }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.hover\:bg-gray-300:hover { background-color: var(--extension-surface); }
 
 .mx-auto { margin-left: auto; margin-right: auto; }
 .justify-between { justify-content: space-between; }
 .items-center { align-items: center; }
-
-.bg-green-50 { background-color: var(--green-50); }
-.text-green-700 { color: var(--green-700); }
-.bg-gray-50 { background-color: var(--gray-50); }
 
 .open-tag { font-size: 0.85em; }
 
@@ -124,7 +128,7 @@ button {
 }
 
 input[type="checkbox"] {
-  accent-color: var(--gray-900);
+  accent-color: var(--extension-accent);
   vertical-align: middle;
   margin-top: 0;
   margin-bottom: 0;
@@ -132,5 +136,5 @@ input[type="checkbox"] {
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.55;
 }
