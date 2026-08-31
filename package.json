@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"dev": "./scripts/ensure-local-domain.sh && ./scripts/dev.mjs",
 		"build": "vite build",
 		"preview": "vite preview --host 127.0.0.1",
 		"test": "vitest run",
