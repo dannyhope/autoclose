@@ -19,7 +19,7 @@
 - Docs impact: README-only documentation work; no `_docs/` behaviour or design update is required unless the README's product description changes.
 
 ### Questions for refinement
-1. **README outcome** Should the existing README be accepted as-is, or should it be revised with additional audience-facing context such as the primary workflow and explicit non-goal that tabs are never closed automatically?
+1. **README outcome** Should we leave the README as it is, or add a short explanation of the main workflow and make it clear that Autoclose never closes tabs by itself?
 
    **Answer:**
 

@@ -35,10 +35,10 @@ The v1 `src/` files appear intact. If Chrome is pointing at `src/` as the unpack
 - Estimated complexity: small (clarification needed first)
 
 ### Questions for refinement
-1. **Which version is current?** Is `src/` (v1) the version being developed, or was `autoclose-v2/` the intended direction that got abandoned?
-2. **What was being loaded?** Was Chrome pointing at `src/` or `autoclose-v2/` when this screenshot was taken?
-3. **Is there an action here?** Is the task to (a) fix the dev environment setup, (b) document what happened, or (c) something else?
-4. **Is this still relevant?** Has the extension been reloaded successfully since this screenshot was taken?
+1. **Current version** Which folder should we treat as the version being developed: `src/`, or `autoclose-v2/`?
+2. **Folder Chrome used** When the screenshot was taken, which folder had Chrome loaded as the unpacked extension: `src/` or `autoclose-v2/`?
+3. **Desired outcome** What should we do next: fix the local extension setup, record this as background information, or take another action?
+4. **Still happening?** Can you currently reload and use the extension successfully, or does the file-not-found error still appear?
 
 ### Documentation impact
 - _(none — likely a dev environment issue, not a behaviour change)_

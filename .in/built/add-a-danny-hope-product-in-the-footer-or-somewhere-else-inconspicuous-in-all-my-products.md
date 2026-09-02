@@ -26,10 +26,10 @@ Add a "Danny Hope product" in the footer or somewhere else inconspicuous in all 
 - **Estimated complexity:** Small (static text/link addition)
 
 ### Questions for refinement
-1. What exact text/format should be used: "A Danny Hope Product", "Made by Danny Hope", "© Danny Hope", or something else?
-2. Should it link to dannyhope.co.uk or a specific products page?
-3. How inconspicuous? Font size, colour, placement constraints?
-4. Should this task be **moved to global CLAUDE.md** as a standard requirement rather than duplicated across projects?
+1. **Attribution text** Which wording should appear in the footer: “A Danny Hope product”, “Made by Danny Hope”, “© Danny Hope”, or another phrase?
+2. **Destination** Should the link go to the main Danny Hope website (`dannyhope.co.uk`) or to a specific page, such as the products page?
+3. **Visual treatment** How subtle should the link be? For example, should it use small muted text in the footer without drawing attention away from the extension?
+4. **Scope** Should this remain a task for Autoclose, or become a shared requirement documented once for all projects?
 
 ### Dependencies
 - None in autoclose `.in/` directory
