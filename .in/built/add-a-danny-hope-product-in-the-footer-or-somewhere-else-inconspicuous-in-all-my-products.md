@@ -1,4 +1,4 @@
-Add a "Danny Hope product" in the footer or somewhere else inconspicuous in all my products.
+# Add a "Danny Hope product" in the footer or somewhere else inconspicuous in all my products.
 **Readiness:** built
 **Completed:** 2026-02-19
 **Done when:** `popup.html` and `full-list.html` both have a subtle footer link "A Danny Hope product" pointing to https://dannyhope.co.uk, styled as muted text that brightens on hover.
