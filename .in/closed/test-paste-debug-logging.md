@@ -1,4 +1,4 @@
-Test the paste functionality with debug logging
+# Test the paste functionality with debug logging
 
 ## Steps
 1. Build v2: `cd autoclose-v2 && npm run build`
