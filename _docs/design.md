@@ -47,6 +47,15 @@ busy; the dev command ensures `autoclose.local` resolves to `127.0.0.1`.
 Settings do not live in the popup. If settings are added, they belong in
 `options.html`.
 
+## Cross-browser packaging
+
+Chrome, Firefox, and Safari use the same popup geometry and tokens. Browser
+compatibility is kept in `src/js/lib/browser-api.js` and target manifests;
+unsupported actions use the existing quiet error path rather than introducing
+browser-specific product chrome. Favicon loading also uses the shared runtime
+URL resolver so Safari and Firefox do not depend on a Chrome-only extension
+scheme.
+
 Store screenshots should show this real popup geometry (narrow card), not a marketing-page mock.
 
 ## Full-list page

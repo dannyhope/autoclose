@@ -1,15 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Auto-close tabs",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "Manage a list of URLs that are safe to close and close matching tabs on demand",
-  "permissions": [
-    "storage",
-    "tabs",
-    "bookmarks",
-    "favicon",
-    "windows"
-  ],
+  "permissions": ["storage", "tabs", "bookmarks", "windows", "favicon"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -19,15 +13,12 @@
     }
   },
   "background": {
-    "service_worker": "js/background.js",
+    "scripts": ["js/background.js"],
     "type": "module"
   },
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["js/tab-warning.js"],
       "run_at": "document_idle"
     }
@@ -36,5 +27,14 @@
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "autoclose@dannyhope.co.uk",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   }
 }

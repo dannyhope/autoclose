@@ -6,6 +6,10 @@
 	"scripts": {
 		"dev": "./scripts/ensure-local-domain.sh && ./scripts/dev.mjs",
 		"build": "vite build",
+		"build:chrome": "node build-targets.mjs chrome",
+		"build:firefox": "node build-targets.mjs firefox",
+		"build:safari": "node build-targets.mjs safari",
+		"build:all": "npm run build:chrome && npm run build:firefox && npm run build:safari",
 		"preview": "vite preview --host 127.0.0.1",
 		"test": "vitest run",
 		"test:watch": "vitest"

@@ -1,9 +1,31 @@
+# Usability issues
+
+## Open
+
+| id | feature | user goal | action | cw failure | why | severity | status | test |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| cross-browser-unsupported-tiling | Safari/Firefox support | Arrange all tabs into a grid | Choose “Tile all tabs” in a browser without window management | will-see-progress | The action can be unavailable or report unsupported, which may be mistaken for a failed close operation. | medium | open | “Arrange all your open tabs into separate windows.” |
+| safari-signing | Safari release | Install Autoclose for regular use | Install the Safari build | will-associate | A raw extension folder is not a distributable Safari extension; signing happens through Xcode/App Store Connect. | medium | open | “Install the Safari version for everyday use.” |
 # Autoclose — Usability issues
 
 Predicted issues from cognitive walkthroughs. This is not a list of observed
 user feedback.
 
 ## Open issues
+
+### cross-browser-favicon-fallback
+
+| Field | Detail |
+|---|---|
+| id | `cross-browser-favicon-fallback` |
+| feature | Safari and Firefox favicon compatibility |
+| user goal | “Recognise the site I am about to remove.” |
+| action | Review a safe-to-close row when the browser cannot resolve its favicon URL. |
+| cw failure | will-see-progress |
+| why | A missing icon can make the row look incomplete even though the URL remains available. |
+| severity | low |
+| status | open |
+| test | “Which saved website would you remove from this list?” Starting context: a list containing a site whose favicon is unavailable. |
 
 ### popup-primary-action-hierarchy
 

@@ -4,6 +4,19 @@
 >
 > **This file is the source of truth for how Autoclose should work.**
 
+## Browser support
+
+Autoclose ships one shared WebExtensions implementation with target manifests:
+Chrome 120+ uses MV3 service workers, Firefox 109+ uses an MV3 background
+script, and Safari 17+ on macOS 14+ uses a signed Safari Web Extension
+converted in Xcode. The compatibility layer chooses `browser` or `chrome`
+without changing product behaviour. Firefox and Safari use compatibility
+wrappers for callback- and promise-style WebExtension APIs; bookmarks and
+favicon access fall back quietly when unavailable. If a browser lacks window
+management, tile-all-tabs reports unsupported; protected pages and file URLs do
+not receive title warnings. Release signing is required for Firefox AMO and
+Safari App Store distribution.
+
 ## Purpose
 
 Autoclose (Chrome package name **Auto-close tabs**) lets you keep a list of sites you consider always safe to close, then close every matching tab in one click. Closing is always user-initiated. The extension does not close tabs on a timer or in the background without that click.
