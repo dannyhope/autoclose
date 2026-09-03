@@ -91,7 +91,22 @@ There is no side panel.
 
 ## Permissions (declared)
 
-`storage`, `tabs`, `bookmarks`, `favicon`, plus a content script on `http://*/*` and `https://*/*` for title warnings.
+`storage`, `tabs`, `bookmarks`, plus host access for `http://*/*` and
+`https://*/*` where required by the target manifest. The Chrome-only `favicon`
+permission is omitted from Firefox and Safari; favicon URLs resolve through the
+runtime when supported and otherwise fail quietly.
+
+## Cross-browser release
+
+`npm run build:all` creates independent packages in `dist-chrome/`,
+`dist-firefox/`, and `dist-safari/`. Firefox packages are loaded temporarily
+from `about:debugging#/runtime/this-firefox` and signed through AMO for
+release. Safari packages are converted into a Safari Web Extension target in
+Xcode, tested with the containing app, then signed and submitted through App
+Store Connect. Safari and Firefox retain the shared popup, storage, matching,
+closing, warnings, and badges; favicon display and window tiling are
+best-effort because those APIs are browser-dependent. Unsupported tiling
+reports an error without changing tab state.
 
 ## Accessibility
 

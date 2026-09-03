@@ -3,10 +3,10 @@ import { findMatchingTabs, getDuplicateTabIds } from './lib/tab-actions.js';
 import { matchesUrlPattern } from './lib/url-utils.js';
 import { getAllBookmarks, findBookmarkedTabs, findBlankTabs } from './lib/bookmark-utils.js';
 import { tileAllTabs } from './lib/window-tiling.js';
-import { extensionApi } from './lib/browser-api.js';
+import { addListener, extensionApi, setBadgeBackgroundColor, setBadgeText } from './lib/browser-api.js';
 
 // Consolidated message handler
-extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
+addListener(extensionApi.runtime.onMessage, (request, sender, sendResponse) => {
   if (!request?.action) return;
 
   switch (request.action) {
@@ -92,11 +92,11 @@ async function updateBadge() {
     const count = tabIds.size;
 
     if (count === 0) {
-      await extensionApi.action?.setBadgeText?.({ text: '' });
-      await extensionApi.action?.setBadgeBackgroundColor?.({ color: '#8C979C' });
+      await setBadgeText('');
+      await setBadgeBackgroundColor('#8C979C');
     } else {
-      await extensionApi.action?.setBadgeText?.({ text: count.toString() });
-      await extensionApi.action?.setBadgeBackgroundColor?.({ color: '#ED5600' });
+      await setBadgeText(count.toString());
+      await setBadgeBackgroundColor('#ED5600');
     }
   } catch (error) {
     console.error('Error updating badge:', error);
@@ -117,14 +117,14 @@ async function handleCloseTabs() {
 }
 
 // Update badge when tabs change
-extensionApi.tabs.onUpdated.addListener((tabId, changeInfo) => {
+addListener(extensionApi.tabs.onUpdated, (tabId, changeInfo) => {
   if (changeInfo.url || changeInfo.status === 'complete') {
     updateBadge();
   }
 });
 
-extensionApi.tabs.onRemoved.addListener(updateBadge);
-extensionApi.tabs.onCreated.addListener(updateBadge);
+addListener(extensionApi.tabs.onRemoved, updateBadge);
+addListener(extensionApi.tabs.onCreated, updateBadge);
 
 // Initial badge update
 updateBadge();

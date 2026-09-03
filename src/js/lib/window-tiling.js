@@ -27,7 +27,7 @@ export async function tileAllTabs() {
     if (!extensionApi.windows?.getAll || !extensionApi.windows?.create || !extensionApi.windows?.update) {
       throw new Error('Window tiling is not supported in this browser');
     }
-    const windows = await extensionApi.windows.getAll({ populate: true });
+    const windows = await Promise.resolve(extensionApi.windows.getAll({ populate: true }));
 
     // Collect all tabs from all windows
     const allTabs = [];
@@ -52,7 +52,7 @@ export async function tileAllTabs() {
 
     // Close all windows except the first one
     for (let i = 1; i < windows.length; i++) {
-      await extensionApi.windows.remove(windows[i].id);
+      await Promise.resolve(extensionApi.windows.remove(windows[i].id));
     }
 
     // Create individual windows for each tab and position them
@@ -65,22 +65,22 @@ export async function tileAllTabs() {
 
       if (i === 0) {
         // Reuse the first window
-        await extensionApi.windows.update(windows[0].id, {
+        await Promise.resolve(extensionApi.windows.update(windows[0].id, {
           left,
           top,
           width,
           height,
           state: 'normal'
-        });
+        }));
       } else {
         // Create new window for each remaining tab
-        await extensionApi.windows.create({
+        await Promise.resolve(extensionApi.windows.create({
           tabId: tab.id,
           left,
           top,
           width,
           height
-        });
+        }));
       }
     }
 

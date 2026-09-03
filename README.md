@@ -1,6 +1,6 @@
 # Auto-close tabs
 
-Auto-close tabs is a browser extension for Chrome, Firefox, and Safari for quickly clearing away tabs you already know you do not need. You define a list of safe-to-close tabs, review the matches, and use one button to close them all at once. It never closes tabs automatically: closing is always an action you initiate.
+Auto-close tabs is a browser extension for Chrome, Firefox, and Safari that helps you quickly clear away tabs you already know you do not need. You define a safe-to-close list, review the matching tabs, and click once to close them. It never closes tabs automatically: every close is initiated by you.
 
 The main workflow is deliberately simple: add the sites you trust to the safe-to-close list, open the popup when you want to tidy up, review which tabs match, and click to close them. Autoclose does not close tabs on a timer or in the background.
 

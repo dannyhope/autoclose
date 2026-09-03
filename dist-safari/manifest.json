@@ -3,7 +3,8 @@
   "name": "Auto-close tabs",
   "version": "1.0.0",
   "description": "Manage a list of URLs that are safe to close and close matching tabs on demand",
-  "permissions": ["storage", "tabs", "bookmarks", "windows", "favicon"],
+  "permissions": ["storage", "tabs", "bookmarks", "windows"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

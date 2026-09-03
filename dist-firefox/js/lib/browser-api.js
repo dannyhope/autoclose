@@ -2,6 +2,10 @@ const browserApi = globalThis.browser ?? globalThis.chrome;
 
 export const extensionApi = browserApi;
 
+function getLastError() {
+  return extensionApi?.runtime?.lastError;
+}
+
 export function sendTabMessage(tabId, message) {
   return callbackApi(extensionApi.tabs.sendMessage.bind(extensionApi.tabs), tabId, message)
     .catch(() => undefined);
@@ -18,7 +22,7 @@ export function callbackApi(call, ...args) {
     };
     try {
       const result = call(...args, (value) => {
-        const error = extensionApi.runtime?.lastError;
+        const error = getLastError();
         if (error) {
           reject(new Error(error.message));
         } else {
@@ -36,6 +40,26 @@ export function callbackApi(call, ...args) {
 
 export function runtimeMessage(message) {
   return callbackApi(extensionApi.runtime.sendMessage.bind(extensionApi.runtime), message);
+}
+
+export function callApi(namespace, method, ...args) {
+  const fn = namespace?.[method];
+  if (typeof fn !== 'function') {
+    return Promise.reject(new Error(`${method} is not supported in this browser`));
+  }
+  return callbackApi(fn.bind(namespace), ...args);
+}
+
+export function addListener(event, listener) {
+  event?.addListener?.(listener);
+}
+
+export function setBadgeText(text) {
+  return callApi(extensionApi.action ?? extensionApi.browserAction, 'setBadgeText', { text });
+}
+
+export function setBadgeBackgroundColor(color) {
+  return callApi(extensionApi.action ?? extensionApi.browserAction, 'setBadgeBackgroundColor', { color });
 }
 
 export function isUnsupportedUrl(url) {

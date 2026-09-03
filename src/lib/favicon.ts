@@ -13,14 +13,11 @@ export function faviconSrc(pageUrl: string) {
     }
     return '';
   }
-  const runtimeId = globalThis.browser?.runtime?.id ?? globalThis.chrome?.runtime?.id;
   const runtime = globalThis.browser?.runtime ?? globalThis.chrome?.runtime;
   if (runtime?.getURL) {
     return `${runtime.getURL('_favicon/') }?pageUrl=${encodeURIComponent(pageUrl)}&size=16`;
   }
-  return runtimeId
-    ? `chrome-extension://${runtimeId}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=16`
-    : '';
+  return '';
 }
 
 export function faviconPageUrl(domain: string, sampleUrl: string) {

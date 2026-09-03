@@ -1,5 +1,5 @@
 # Port Autoclose to Safari and Firefox
-**Readiness:** refined
+**Readiness:** built
 **Roadmap:** later
 **Type:** build
 

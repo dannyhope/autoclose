@@ -1,4 +1,9 @@
 [
+  {
+    "id": "cross-browser-permission-prompt",
+    "prompt": "Install the extension and tell me what access it is asking for.",
+    "instruction": "Starting context: the target browser's extension installation flow."
+  },
 	{
 		"id": "task-1",
 		"instruction": "Find where you would change your settings.",

@@ -40,3 +40,17 @@ user feedback.
 | severity | medium |
 | status | open |
 | test | “How would you close the tabs that are on your safe list?” Starting context: popup open with at least one matching tab. |
+
+### cross-browser-permission-prompt
+
+| Field | Detail |
+|---|---|
+| id | `cross-browser-permission-prompt` |
+| feature | Firefox and Safari installation |
+| user goal | “Install the extension and understand what it can access.” |
+| action | Approve the target browser's extension permissions during installation. |
+| cw failure | will-associate |
+| why | Permission names and wording differ between browsers, particularly where host access replaces Chrome's favicon permission. |
+| severity | medium |
+| status | open |
+| test | “Install the extension and tell me what access it is asking for.” Starting context: the target browser's extension installation flow. |

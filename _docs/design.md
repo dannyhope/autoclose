@@ -58,6 +58,11 @@ scheme.
 
 Store screenshots should show this real popup geometry (narrow card), not a marketing-page mock.
 
+Firefox and Safari use the same visual package. Missing favicons render as the
+existing neutral fallback rather than a browser-specific placeholder. Tiling
+has no additional browser-specific control; an unsupported result uses the
+existing quiet error path.
+
 ## Full-list page
 
 - Same utility look and a 400–420px reading column when opened as an extension page.
