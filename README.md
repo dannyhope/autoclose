@@ -1,6 +1,6 @@
 # Auto-close tabs
 
-You tell it which tabs you often have open which you consider always safe to close and it gives you a button to close them all at once.
+Auto-close tabs is a Chrome extension for quickly clearing away tabs you already know you do not need. You define a list of safe-to-close tabs, review the matches, and use one button to close them all at once. It never closes tabs automatically: closing is always an action you initiate.
 
 ## Architecture overview
 
