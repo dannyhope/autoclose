@@ -40,7 +40,7 @@ Output: `.output/autoclose-chrome-1.0.1.zip` and `.output/autoclose-firefox-1.0.
 ## Browser Support
 
 - **Chrome 120+** (Manifest V3, built from `.output/chrome-mv3/`)
-- **Firefox 109+** (Manifest V2, built from `.output/firefox-mv2/`)
+- **Firefox 109+** (Manifest V3, built from `.output/firefox-mv3/`)
 - **Safari 17+** (via Xcode conversion, use Chrome build as source)
 
 ## Migration Notes
@@ -85,7 +85,7 @@ npm test
 ### Manual Testing
 1. Load unpacked extension:
    - Chrome: `chrome://extensions` → Load unpacked → `.output/chrome-mv3/`
-   - Firefox: `about:debugging` → Load Temporary Add-on → `.output/firefox-mv2/manifest.json`
+   - Firefox: `about:debugging` → Load Temporary Add-on → `.output/firefox-mv3/manifest.json`
 
 2. Test checklist:
    - [ ] Popup opens and displays

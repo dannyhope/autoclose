@@ -47,9 +47,7 @@ Output: `.output/chrome-mv3/`
 npm run build:firefox
 ```
 
-Output: `.output/firefox-mv2/`
-
-Note: WXT targets Firefox MV2 by default as Firefox MV3 support is still stabilising. The extension uses the same modern `browser.*` API for both targets.
+Output: `.output/firefox-mv3/`
 
 ### Both
 ```bash
@@ -199,15 +197,12 @@ New dependencies added:
 
 ## Known Differences
 
-### Firefox Manifest Version
-WXT builds Firefox extensions as MV2 by default because Firefox's MV3 implementation is still evolving. This is intentional and maintains full compatibility with Firefox 109+. The code uses the same modern `browser.*` API regardless of manifest version.
-
 ### Icon Files
 WXT automatically copies icons from `public/icons/` to the output directory. The original `src/icons/` structure is preserved but icons are now referenced via the public directory.
 
 ### Chrome vs. Firefox Differences Handled by WXT
-- Background script: Service worker (Chrome MV3) vs. persistent script (Firefox MV2)
-- Action API: `action` (Chrome MV3) vs. `browser_action` (Firefox MV2)
+- Background script: Service worker (Chrome) vs. background scripts array (Firefox MV3)
+- Both browsers use Manifest V3
 - Host permissions: Handled automatically per browser requirements
 
 ## Troubleshooting

@@ -37,7 +37,7 @@ npm run zip:firefox      # Firefox ZIP
 
 After building:
 - **Chrome**: `.output/chrome-mv3/`
-- **Firefox**: `.output/firefox-mv2/`
+- **Firefox**: `.output/firefox-mv3/`
 - **Chrome ZIP**: `.output/autoclose-chrome-1.0.1.zip` (123 KB)
 - **Firefox ZIP**: `.output/autoclose-firefox-1.0.1.zip` (123 KB)
 
@@ -70,8 +70,6 @@ npm run build:firefox && npm run zip:firefox
 
 Upload `.output/autoclose-firefox-1.0.1.zip` to [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/)
 
-**Note**: Firefox build uses MV2 (not MV3) because Firefox's MV3 implementation is still stabilising. The code uses modern `browser.*` API regardless.
-
 ## Safari App Store Distribution
 
 ### Step 1: Build Base Extension
@@ -102,7 +100,7 @@ Before deploying to production, verify:
 ### Firefox Testing
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click "Load Temporary Add-on"
-3. Select `.output/firefox-mv2/manifest.json`
+3. Select `.output/firefox-mv3/manifest.json`
 
 ### Functional Testing
 - [ ] Popup opens and displays correctly
@@ -122,7 +120,7 @@ Before deploying to production, verify:
 ## Browser Support
 
 - **Chrome 120+** (Manifest V3)
-- **Firefox 109+** (Manifest V2 via WXT)
+- **Firefox 109+** (Manifest V3)
 - **Safari 17+ on macOS 14+** (via Xcode conversion)
 
 ## Migration Details
@@ -158,6 +156,7 @@ Before deploying to production, verify:
 ### Firefox Build
 - Total size: 393 KB (uncompressed)
 - ZIP size: 123 KB
+- Manifest V3 (same as Chrome)
 - Identical structure to Chrome
 
 ## Documentation

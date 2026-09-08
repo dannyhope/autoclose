@@ -21,6 +21,7 @@ export default defineConfig({
       128: '/icons/icon-128.png'
     }
   },
+  manifestVersion: 3,
   runner: {
     disabled: true
   },
