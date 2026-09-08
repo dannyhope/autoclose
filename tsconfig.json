@@ -14,9 +14,10 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "~/*": ["./*"]
     },
-    "types": ["vite/client", "chrome", "node"]
+    "types": ["vite/client", "node", "webextension-polyfill", "wxt"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "wxt.config.ts", ".wxt"]
 }
