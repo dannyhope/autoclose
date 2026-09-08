@@ -15,23 +15,27 @@
 <body>
   <div class="page">
     <h1>Dannify status — Autoclose</h1>
-    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-08-28.</p>
-    <p class="hint">What still needs doing, then what’s already up to spec. Product truth is <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Current KPI is <code>_docs/now.md</code>. Detected: Manifest V3 Chrome extension (<code>src/manifest.json</code>) with Vite + React + Tailwind + shadcn popup/full-list; vanilla service worker, content script, and <code>src/js/lib</code>. Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo migration is not listed.</p>
+    <p class="meta">Living audit. Regenerated whenever <code>/dannify</code> runs. Last updated: 2026-09-07.</p>
+    <p class="hint">What still needs doing, then what’s already up to spec. Product truth is <code>_docs/spec.md</code> and <code>_docs/design.md</code>. Current KPI is <code>_docs/now.md</code>. Detected: Manifest V3 Chrome, Firefox, and Safari extension (<code>src/manifest.json</code>) with Vite + React + Tailwind + shadcn popup/full-list; vanilla service worker, content script, and <code>src/js/lib</code>. Stack kept. <code>/browser-extension</code> and <code>/design-system</code> fed this audit; Plasmo migration is not listed.</p>
 
     <section class="panel">
       <h2>Improvements</h2>
       <h3>Must</h3>
       <ul>
         <li>Update <code>_docs/spec.md</code> non-goals: it still forbids a “Plasmo/shadcn rewrite of the existing vanilla popup”, but the popup is already Vite + React + shadcn — living docs must match the shipped stack.</li>
-        <li>Add <code>scripts/ensure-local-domain.sh</code> and map <code>autoclose.local</code> to loopback before local development starts; the required project hostname is currently absent.</li>
       </ul>
       <h3>Should</h3>
       <ul>
         <li>Add <code>CLAUDE.md</code> with MV3 / load-unpacked / <code>npm run dev</code> live-preview development notes (Vite React stack, not vanilla popup).</li>
         <li>Add <code>_docs/now.md</code> with a current KPI (ask via <code>/goal</code>; do not invent one).</li>
-        <li>Fix attribution credit contrast: footer uses <code>#8C979C</code> (Cool Grey 70); use Cool Grey 60 <code>#616E73</code> (and hover to foreground). Align <code>_docs/design.md</code>.</li>
+        <li>Fix attribution credit contrast: audit the actual footer token and use Cool Grey 60 <code>#616E73</code> (and hover to foreground) if it is below the standard. Align <code>_docs/design.md</code>.</li>
         <li>Add Undo after removing a safe/never-close pattern (toast ~8s) — delete is a simple reversible action.</li>
-        <li>Switch product typeface from IBM Plex Sans to Museo Sans (brand face; <code>src/index.css</code> / <code>src/styles/utilities.css</code> + <code>_docs/design.md</code>).</li>
+        <li>Add a Shift+? / Shift+/ shortcut overlay listing the extension’s available shortcuts, or document that no shortcuts are currently exposed.</li>
+        <li>Review the remaining design-system audit finding: extension badge colours in <code>src/js/background.js</code> use orange/grey outside the documented extension token subset; align implementation or document the intentional browser badge exception.</li>
+      </ul>
+      <h3>Nice</h3>
+      <ul>
+        <li>Offer Prototype Panels only if developer-only flags or preview modes are needed; do not add them to the end-user popup by default.</li>
       </ul>
     </section>
 
@@ -40,13 +44,19 @@
       <ul>
         <li><code>_docs/spec.md</code> covers purpose, surfaces, behaviour, permissions, and accessibility level (none — no thought given)</li>
         <li><code>_docs/design.md</code> covers popup, full-list, tab-warning titles, toolbar icon, and shadcn stack</li>
-        <li>README opens with purpose, then load-unpacked steps (<code>npm run build</code> → <code>dist</code>) and live preview via <code>npm run dev</code></li>
+        <li>README opens with purpose, then load-unpacked steps and live preview via <code>npm run dev</code></li>
         <li>“A Danny Hope product” in popup/full-list footer → https://dannyhope.co.uk; Feedback → https://dannyhope.co.uk/feedback</li>
         <li>Public hrefs use hops (README zip → <code>https://dannyhope.co.uk/autoclose/source</code>)</li>
         <li>Chrome Web Store <code>publish/</code> pack with <code>operator.css</code>, listing copy, and permission justifications</li>
         <li>Loadable package is Manifest V3 (<code>action</code>, <code>background.service_worker</code>)</li>
-        <li>Popup/options live preview: Vite HMR opens <code>/popup.html</code> with chrome shim (preferred port from <code>.dev-port</code> + <code>scripts/resolve-dev-port.sh</code>)</li>
+        <li>Popup/full-list live preview: Vite HMR opens the React surfaces with a chrome shim (preferred port from <code>.dev-port</code> + <code>scripts/resolve-dev-port.sh</code>)</li>
         <li><code>.dev-port</code> and strict Vite port resolution are configured</li>
+        <li>Committed <code>.local-domain</code> and <code>scripts/ensure-local-domain.sh</code> are wired into <code>npm run dev</code>; <code>autoclose.local</code> resolves to loopback</li>
+        <li><code>autoclose.code-workspace</code> exists</li>
+        <li><code>.in/</code> inbox; <code>.gitignore</code> includes <code>_vibing/</code> and <code>.DS_Store</code>; <code>_vibing/</code> exists</li>
+        <li>Listed in Bombay <code>projects.json</code> as <code>autoclose</code></li>
+        <li>Usability-test scaffold and cognitive-walkthrough issues exist</li>
+        <li>No connected checker results exist yet; applicable <code>product-check</code>, <code>evidence</code>, <code>accessibility</code>, <code>security</code>, <code>performance</code>, and <code>deployment</code> checks are never run</li>
         <li><code>operator.css</code> is present for the publish helper; no decorative page rule was found in the audited product UI</li>
         <li>Product UI is on shadcn; palette tokens are brand Cool Greys / greens / reds</li>
         <li>No appearance / theme picker (OS <code>prefers-color-scheme</code> only)</li>
