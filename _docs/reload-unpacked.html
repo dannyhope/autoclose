@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reload Autoclose in Chrome</title>
+  <link rel="stylesheet" href="operator.css">
+  <style>
+    .copy-wrap {
+      position: relative;
+      background: var(--code);
+      border-radius: 8px;
+    }
+    pre.copy-block {
+      margin: 0;
+      padding: 0.85rem 2.5rem 0.85rem 1rem;
+      background: transparent;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.85rem;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height: 1.45;
+    }
+    .copy-actions {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.45rem;
+      display: flex;
+      gap: 0.2rem;
+    }
+    .copy-actions > button.copy {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: color-mix(in srgb, var(--card) 72%, transparent);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .copy-actions > button.copy:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--card);
+    }
+    .copy-actions > button.copy.copied {
+      background: var(--status-public-bg, var(--done-bg, var(--code)));
+      border-color: var(--done);
+      color: var(--done);
+    }
+    .copy-actions > button.copy.copied svg { display: none; }
+    .copy-actions > button.copy.copied::after {
+      content: "✓";
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-cool-grey-80, #343F44);
+      color: #fff;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 20;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body class="helper-page">
+  <header class="app-header">
+    <div class="inner">
+      <h1>Reload Autoclose in Chrome</h1>
+    </div>
+  </header>
+  <main>
+    <section class="panel status-card" data-status="Mixed">
+      <p class="label">Broken install</p>
+      <p>Chrome still has two old unpacked copies. One points at a deleted folder; the other at source files the browser cannot run. Load <code>dist-chrome/</code> instead.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Fix the toolbar icon</h2>
+
+      <div class="step substep" data-step="open-extensions">
+        <div class="step-head">
+          <label class="done-toggle"><input type="checkbox" data-done aria-label="Done"></label>
+          <h3>Open Chrome’s Extensions page</h3>
+        </div>
+        <p class="where">Where: <a href="chrome://extensions">chrome://extensions</a> (paste that into the address bar if the link does not open)</p>
+      </div>
+
+      <div class="step substep" data-step="remove-old">
+        <div class="step-head">
+          <label class="done-toggle"><input type="checkbox" data-done aria-label="Done"></label>
+          <h3>Remove every Auto-close / Autoclose card</h3>
+        </div>
+        <p class="where">On <a href="chrome://extensions">chrome://extensions</a>, click Remove on each matching card (there may be two).</p>
+        <p>Done looks like: no Auto-close tabs cards left on the page.</p>
+      </div>
+
+      <div class="step substep" data-step="dev-mode">
+        <div class="step-head">
+          <label class="done-toggle"><input type="checkbox" data-done aria-label="Done"></label>
+          <h3>Turn Developer mode on</h3>
+        </div>
+        <p class="where">Top-right switch on <a href="chrome://extensions">chrome://extensions</a>.</p>
+      </div>
+
+      <div class="step substep" data-step="load-dist" data-copy>
+        <div class="step-head">
+          <label class="done-toggle"><input type="checkbox" data-done aria-label="Done"></label>
+          <h3>Load unpacked → choose dist-chrome</h3>
+        </div>
+        <p class="where">Click <strong>Load unpacked</strong>, then open this folder:</p>
+        <div class="copy-wrap">
+          <pre class="copy-block">/Users/dannyhope/Dropbox/Autoclose browser plugin/Repos/autoclose/dist-chrome</pre>
+          <div class="copy-actions">
+            <button type="button" class="copy" aria-label="Copy" title="Copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1 2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
+        <p>Done looks like: one <strong>Auto-close tabs</strong> card with no Errors.</p>
+      </div>
+
+      <div class="step substep" data-step="pin-and-click">
+        <div class="step-head">
+          <label class="done-toggle"><input type="checkbox" data-done aria-label="Done"></label>
+          <h3>Pin it, then click the toolbar icon</h3>
+        </div>
+        <p class="where">Puzzle-piece menu → pin Auto-close tabs → click the grey ✕ icon.</p>
+        <p>Done looks like: the popup with your lists and <strong>Close n matching tabs</strong>.</p>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function () {
+      var STORAGE_KEY = 'autoclose-reload-unpacked-done-v1';
+      var saved = {};
+      var toastEl = document.getElementById('toast');
+      function showToast(msg) {
+        if (!toastEl) return;
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(function () { toastEl.classList.remove('show'); }, 1600);
+      }
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch (e) {}
+      document.querySelectorAll('.step[data-step]').forEach(function (step) {
+        var id = step.getAttribute('data-step');
+        var box = step.querySelector('input[data-done]');
+        var head = step.querySelector('.step-head');
+        if (!box) return;
+        box.checked = !!saved[id];
+        step.classList.toggle('is-done', box.checked);
+        box.addEventListener('change', function () {
+          saved[id] = box.checked;
+          step.classList.toggle('is-done', box.checked);
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (e) {}
+        });
+        if (head) {
+          head.addEventListener('click', function (e) {
+            if (e.target.closest('input') || e.target.closest('a') || e.target.closest('button')) return;
+            e.preventDefault();
+            box.checked = !box.checked;
+            box.dispatchEvent(new Event('change'));
+          });
+        }
+      });
+
+      document.querySelectorAll('[data-copy]').forEach(function (field) {
+        var block = field.querySelector('.copy-block');
+        var btn = field.querySelector('button.copy');
+        if (!btn || !block) return;
+        btn.addEventListener('click', function () {
+          var text = block.textContent || '';
+          if (!text.trim()) {
+            showToast('Nothing to copy');
+            return;
+          }
+          navigator.clipboard.writeText(text).then(function () {
+            btn.classList.add('copied');
+            showToast('Copied to clipboard');
+            setTimeout(function () { btn.classList.remove('copied'); }, 1500);
+          }).catch(function () {
+            showToast('Copy failed — select the text manually');
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

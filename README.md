@@ -41,7 +41,7 @@ You can try this extension before it's in the Chrome Web Store:
 4. Select Window > Extensions
 5. Toggle dev mode on (the switch is in the top right of the Extensions page)
 6. Choose Load unpacked
-7. Run `npm run build`, then pick the `dist` folder in the autoclose directory
+7. Run `npm run build:chrome`, then pick the `dist-chrome` folder in the autoclose directory
 8. The icon should appear
 9. Right click the icon and select Pin
 

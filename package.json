@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "./scripts/ensure-local-domain.sh && ./scripts/dev.mjs",
+		"dev": "./scripts/ensure-local-domain.sh && node ./scripts/dev.mjs",
 		"build": "vite build",
 		"build:chrome": "node build-targets.mjs chrome",
 		"build:firefox": "node build-targets.mjs firefox",
